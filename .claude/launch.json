@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "BelaHub Backend",
+      "runtimeExecutable": "C:\\Users\\glauc\\belahub-backend.cmd",
+      "runtimeArgs": [],
+      "port": 5000,
+      "autoPort": false
+    },
+    {
+      "name": "BelaHub Frontend",
+      "runtimeExecutable": "C:\\Users\\glauc\\belahub-frontend.cmd",
+      "runtimeArgs": [],
+      "port": 3000
+    }
+  ]
+}

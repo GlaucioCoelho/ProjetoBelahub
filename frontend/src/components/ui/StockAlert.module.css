@@ -1,0 +1,37 @@
+.alert {
+  padding: 15px;
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-weight: bold;
+  color: #92400e;
+  margin-bottom: 5px;
+}
+
+.message {
+  font-size: 14px;
+  color: #b45309;
+}
+
+.severity {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+.warning {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.critical {
+  background: #ef4444;
+  color: #fff;
+}
