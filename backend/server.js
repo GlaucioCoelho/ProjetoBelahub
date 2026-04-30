@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import * as Sentry from '@sentry/node';
 import { handleWebhook } from './src/controllers/stripeController.js';
 import stripeRoutes from './src/routes/stripeRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
@@ -30,6 +31,26 @@ dotenv.config();
 if (!process.env.JWT_SECRET) {
   console.error('❌ FATAL: JWT_SECRET environment variable is not set. Set it before starting the server.');
   process.exit(1);
+}
+
+// Inicialize Sentry
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Sentry.Integrations.OnUncaughtException(),
+      new Sentry.Integrations.OnUnhandledRejection(),
+    ],
+    beforeSend(event, hint) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Sentry]', hint.originalException || hint.syntheticException);
+      }
+      return event;
+    }
+  });
 }
 
 // Configuração de diretórios para ES modules
@@ -64,6 +85,11 @@ const corsOptions = {
 };
 
 // Middlewares
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
+
 app.use(cors(corsOptions));
 
 // Stripe webhook must receive raw body before express.json parses it
@@ -144,9 +170,28 @@ app.get('*', (req, res) => {
   }
 });
 
+// Sentry error handler (must come after other routes/handlers)
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler());
+}
+
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {
   console.error(err.stack);
+
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(err, {
+      tags: { type: 'unhandled_error' },
+      contexts: {
+        express: {
+          method: req.method,
+          path: req.path,
+          statusCode: res.statusCode
+        }
+      }
+    });
+  }
+
   res.status(500).json({ error: 'Erro interno do servidor' });
 });
 
