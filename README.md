@@ -275,19 +275,19 @@ npm run test
 
 ```bash
 # Ver status do MongoDB
-docker ps | grep belahub-mongo
+docker ps | grep belahub-mongodb
 
 # Parar MongoDB
-docker stop belahub-mongo
+docker stop belahub-mongodb
 
 # Reiniciar MongoDB
-docker start belahub-mongo
+docker start belahub-mongodb
 
 # Ver logs
-docker logs belahub-mongo
+docker logs belahub-mongodb
 
 # Remover container
-docker rm belahub-mongo
+docker rm belahub-mongodb
 ```
 
 ## 🤝 Contribuindo
