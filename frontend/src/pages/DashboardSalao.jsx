@@ -8,6 +8,7 @@ import {
 import agendamentoService from '../services/agendamentoService';
 import funcionarioService from '../services/funcionarioService';
 import api from '../services/api';
+import { useNavigation } from '../store/navigationContext';
 
 const TODAY = new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 const HOUR = new Date().getHours();
@@ -46,6 +47,7 @@ const STATUS_TO_UI = {
 const PROF_COLORS = ['#7c3aed','#e8185a','#a855f7','#f59e0b','#10b981','#06b6d4'];
 
 export default function DashboardSalao() {
+  const { onNavigate } = useNavigation();
   const [activeDay, setActiveDay] = useState(6); // hoje = último item dos 7 dias
   const [stats, setStats]               = useState(EMPTY_STATS);
   const [weekData, setWeekData]         = useState(EMPTY_WEEK);
@@ -54,6 +56,25 @@ export default function DashboardSalao() {
   const [appointments, setAppointments] = useState([]);
   const [alerts, setAlerts]             = useState([]);
   const [todayCount, setTodayCount]     = useState(0);
+
+  const handleQuickAction = (label) => {
+    switch (label) {
+      case 'Novo agendamento':
+        onNavigate('appointments');
+        break;
+      case 'Novo cliente':
+        onNavigate('clients');
+        break;
+      case 'Lançar venda':
+        onNavigate('sales');
+        break;
+      case 'Ver estoque':
+        onNavigate('products');
+        break;
+      default:
+        break;
+    }
+  };
 
   const loadDashboard = useCallback(async () => {
     const todayISO = new Date().toISOString().substring(0, 10);
@@ -299,7 +320,9 @@ export default function DashboardSalao() {
             {QUICK_ACTIONS.map((qa, i) => {
               const QIcon = qa.icon;
               return (
-                <button key={i} className={s.quickBtn}
+                <button key={i}
+                        className={s.quickBtn}
+                        onClick={() => handleQuickAction(qa.label)}
                         style={{ '--qa-color': qa.color }}>
                   <div className={s.quickIconWrap}>
                     <QIcon size={20} style={{ color: qa.color }}/>

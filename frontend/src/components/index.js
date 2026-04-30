@@ -25,3 +25,4 @@ export { default as Badge } from './ui/Badge';
 export { default as DashboardFinanceiro } from './ui/DashboardFinanceiro';
 export { default as StatCard } from './ui/StatCard';
 export { default as StockAlert } from './ui/StockAlert';
+export { default as PWAInstallPrompt } from './PWAInstallPrompt';

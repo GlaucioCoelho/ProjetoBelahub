@@ -59,6 +59,10 @@ const agendamentoSchema = new mongoose.Schema(
       enum: ['Cartão', 'Dinheiro', 'PIX', 'Transferência', 'Pix'],
       default: 'Cartão',
     },
+    lembreteEnviado: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

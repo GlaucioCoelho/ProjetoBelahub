@@ -100,6 +100,118 @@ export async function enviarBoasVindas({ nome, email, nomeEmpresa }) {
   });
 }
 
+export async function enviarConfirmacaoAgendamento({ nome, email, servico, profissional, data, horario, preco, nomeEmpresa }) {
+  await send({
+    to:      email,
+    subject: '✅ Agendamento confirmado — BelaHub',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
+        <div style="background:linear-gradient(135deg,#7c3aed,#e8185a);padding:32px 24px;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:28px;letter-spacing:-0.5px">✂️ ${nomeEmpresa || 'BelaHub'}</h1>
+          <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px">Seu agendamento está confirmado!</p>
+        </div>
+        <div style="padding:32px 24px">
+          <h2 style="color:#1d1d1f;font-size:20px;margin:0 0 12px">Olá, ${nome}! 👋</h2>
+          <p style="color:#555;line-height:1.6;margin:0 0 20px">
+            Seu agendamento foi confirmado com sucesso. Aqui estão os detalhes:
+          </p>
+          <div style="background:#f8f5ff;border-radius:8px;padding:20px;margin-bottom:24px">
+            <table style="width:100%;border-collapse:collapse;font-size:14px">
+              <tr><td style="color:#7c3aed;font-weight:600;padding:4px 0;width:40%">💇 Serviço</td><td style="color:#1d1d1f;padding:4px 0">${servico}</td></tr>
+              <tr><td style="color:#7c3aed;font-weight:600;padding:4px 0">👤 Profissional</td><td style="color:#1d1d1f;padding:4px 0">${profissional}</td></tr>
+              <tr><td style="color:#7c3aed;font-weight:600;padding:4px 0">📅 Data</td><td style="color:#1d1d1f;padding:4px 0">${data}</td></tr>
+              <tr><td style="color:#7c3aed;font-weight:600;padding:4px 0">🕐 Horário</td><td style="color:#1d1d1f;padding:4px 0">${horario}</td></tr>
+              ${preco ? `<tr><td style="color:#7c3aed;font-weight:600;padding:4px 0">💰 Valor</td><td style="color:#1d1d1f;padding:4px 0">R$ ${Number(preco).toFixed(2)}</td></tr>` : ''}
+            </table>
+          </div>
+          <p style="color:#86868b;font-size:13px;margin:0">
+            Em caso de imprevisto, entre em contato com o salão para reagendar.
+          </p>
+        </div>
+        <div style="background:#f5f5f7;padding:16px 24px;text-align:center">
+          <p style="color:#86868b;font-size:12px;margin:0">
+            © ${new Date().getFullYear()} ${nomeEmpresa || 'BelaHub'} · Este e-mail foi enviado para ${email}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function enviarLembreteAgendamento({ nome, email, servico, profissional, data, horario, nomeEmpresa }) {
+  await send({
+    to:      email,
+    subject: '⏰ Lembrete: seu agendamento é amanhã — BelaHub',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
+        <div style="background:linear-gradient(135deg,#7c3aed,#e8185a);padding:32px 24px;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:28px;letter-spacing:-0.5px">✂️ ${nomeEmpresa || 'BelaHub'}</h1>
+          <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px">Lembrete de agendamento</p>
+        </div>
+        <div style="padding:32px 24px">
+          <h2 style="color:#1d1d1f;font-size:20px;margin:0 0 12px">Olá, ${nome}! 👋</h2>
+          <p style="color:#555;line-height:1.6;margin:0 0 20px">
+            Não esqueça! Você tem um agendamento <strong>amanhã</strong>:
+          </p>
+          <div style="background:#f8f5ff;border-radius:8px;padding:20px;margin-bottom:24px">
+            <table style="width:100%;border-collapse:collapse;font-size:14px">
+              <tr><td style="color:#7c3aed;font-weight:600;padding:4px 0;width:40%">💇 Serviço</td><td style="color:#1d1d1f;padding:4px 0">${servico}</td></tr>
+              <tr><td style="color:#7c3aed;font-weight:600;padding:4px 0">👤 Profissional</td><td style="color:#1d1d1f;padding:4px 0">${profissional}</td></tr>
+              <tr><td style="color:#7c3aed;font-weight:600;padding:4px 0">📅 Data</td><td style="color:#1d1d1f;padding:4px 0">${data}</td></tr>
+              <tr><td style="color:#7c3aed;font-weight:600;padding:4px 0">🕐 Horário</td><td style="color:#1d1d1f;padding:4px 0">${horario}</td></tr>
+            </table>
+          </div>
+          <p style="color:#86868b;font-size:13px;margin:0">
+            Caso precise cancelar ou reagendar, entre em contato com o salão com antecedência.
+          </p>
+        </div>
+        <div style="background:#f5f5f7;padding:16px 24px;text-align:center">
+          <p style="color:#86868b;font-size:12px;margin:0">
+            © ${new Date().getFullYear()} ${nomeEmpresa || 'BelaHub'} · Este e-mail foi enviado para ${email}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function enviarCancelamentoAgendamento({ nome, email, servico, profissional, data, horario, nomeEmpresa }) {
+  await send({
+    to:      email,
+    subject: '❌ Agendamento cancelado — BelaHub',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
+        <div style="background:linear-gradient(135deg,#7c3aed,#e8185a);padding:32px 24px;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:28px;letter-spacing:-0.5px">✂️ ${nomeEmpresa || 'BelaHub'}</h1>
+          <p style="color:rgba(255,255,255,0.85);margin:8px 0 0;font-size:14px">Aviso de cancelamento</p>
+        </div>
+        <div style="padding:32px 24px">
+          <h2 style="color:#1d1d1f;font-size:20px;margin:0 0 12px">Olá, ${nome}!</h2>
+          <p style="color:#555;line-height:1.6;margin:0 0 20px">
+            Seu agendamento foi <strong>cancelado</strong>. Detalhes do agendamento cancelado:
+          </p>
+          <div style="background:#fff5f5;border-radius:8px;padding:20px;margin-bottom:24px;border-left:4px solid #e8185a">
+            <table style="width:100%;border-collapse:collapse;font-size:14px">
+              <tr><td style="color:#e8185a;font-weight:600;padding:4px 0;width:40%">💇 Serviço</td><td style="color:#1d1d1f;padding:4px 0">${servico}</td></tr>
+              <tr><td style="color:#e8185a;font-weight:600;padding:4px 0">👤 Profissional</td><td style="color:#1d1d1f;padding:4px 0">${profissional}</td></tr>
+              <tr><td style="color:#e8185a;font-weight:600;padding:4px 0">📅 Data</td><td style="color:#1d1d1f;padding:4px 0">${data}</td></tr>
+              <tr><td style="color:#e8185a;font-weight:600;padding:4px 0">🕐 Horário</td><td style="color:#1d1d1f;padding:4px 0">${horario}</td></tr>
+            </table>
+          </div>
+          <p style="color:#555;font-size:13px;margin:0">
+            Gostaria de remarcar? Entre em contato com o salão para agendar um novo horário.
+          </p>
+        </div>
+        <div style="background:#f5f5f7;padding:16px 24px;text-align:center">
+          <p style="color:#86868b;font-size:12px;margin:0">
+            © ${new Date().getFullYear()} ${nomeEmpresa || 'BelaHub'} · Este e-mail foi enviado para ${email}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+}
+
 export async function enviarResetSenha({ nome, email, link }) {
   await send({
     to:      email,

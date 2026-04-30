@@ -46,6 +46,8 @@ const usuarioSchema = new mongoose.Schema(
       estado:      { type: String, default: '' },
       tipoNegocio: { type: String, enum: ['salao', 'barbearia', 'studio', 'spa', 'outro'], default: 'salao' },
     },
+    stripeCustomerId:     { type: String, default: null },
+    stripeSubscriptionId: { type: String, default: null },
   },
   { timestamps: true }
 );

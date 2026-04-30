@@ -16,6 +16,8 @@ const comandaSchema = new mongoose.Schema({
   itens:        { type: [itemSchema], default: [] },
   status:       { type: String, enum: ['aberta', 'fechada'], default: 'aberta' },
   observacoes:  { type: String, maxlength: 500 },
+  metodoPagamento:      { type: String, enum: ['dinheiro', 'pix', 'cartao', 'transferencia', 'stripe'], default: null },
+  stripePaymentIntentId: { type: String, default: null },
 }, { timestamps: true });
 
 comandaSchema.pre('save', async function (next) {

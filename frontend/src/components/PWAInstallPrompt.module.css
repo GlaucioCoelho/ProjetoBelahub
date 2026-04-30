@@ -1,0 +1,118 @@
+.banner {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.icon {
+  flex-shrink: 0;
+  min-width: 20px;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 12px;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.installBtn {
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.installBtn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.7);
+  transform: scale(1.02);
+}
+
+.installBtn:active {
+  transform: scale(0.98);
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.closeBtn:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+@media (max-width: 600px) {
+  .banner {
+    padding: 10px 12px;
+  }
+
+  .content {
+    gap: 10px;
+  }
+
+  .text {
+    flex: 1;
+  }
+
+  .title {
+    font-size: 13px;
+  }
+
+  .subtitle {
+    font-size: 11px;
+  }
+
+  .installBtn {
+    padding: 5px 12px;
+    font-size: 12px;
+  }
+}

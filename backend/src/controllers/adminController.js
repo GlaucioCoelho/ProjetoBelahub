@@ -193,7 +193,8 @@ export const atualizarPlano = async (req, res) => {
 
 export const deletarPlano = async (req, res) => {
   try {
-    await Plano.findByIdAndDelete(req.params.id);
+    const plano = await Plano.findByIdAndDelete(req.params.id);
+    if (!plano) return res.status(404).json({ sucesso: false, mensagem: 'Plano não encontrado' });
     res.json({ sucesso: true });
   } catch (err) {
     res.status(500).json({ sucesso: false, mensagem: err.message });

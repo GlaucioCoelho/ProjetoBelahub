@@ -2,8 +2,52 @@ import Agendamento from '../models/Agendamento.js';
 import Transacao   from '../models/Transacao.js';
 import Funcionario from '../models/Funcionario.js';
 import Cliente     from '../models/Cliente.js';
+import Usuario     from '../models/Usuario.js';
+import {
+  enviarConfirmacaoAgendamento,
+  enviarCancelamentoAgendamento,
+} from '../utils/emailService.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
+
+async function notificarConfirmacao(agendamento, empresaId) {
+  if (!agendamento.cliente) return;
+  const [cliente, empresa] = await Promise.all([
+    Cliente.findById(agendamento.cliente).select('nome email'),
+    Usuario.findById(empresaId).select('nomeEmpresa'),
+  ]);
+  if (!cliente?.email) return;
+  const data = new Date(agendamento.dataAgendamento).toLocaleDateString('pt-BR');
+  enviarConfirmacaoAgendamento({
+    nome:       cliente.nome,
+    email:      cliente.email,
+    servico:    agendamento.servico,
+    profissional: agendamento.profissional,
+    data,
+    horario:    agendamento.horarioInicio,
+    preco:      agendamento.preco,
+    nomeEmpresa: empresa?.nomeEmpresa,
+  }).catch(err => console.warn('[Email] Confirmação:', err.message));
+}
+
+async function notificarCancelamento(agendamento, empresaId) {
+  if (!agendamento.cliente) return;
+  const [cliente, empresa] = await Promise.all([
+    Cliente.findById(agendamento.cliente).select('nome email'),
+    Usuario.findById(empresaId).select('nomeEmpresa'),
+  ]);
+  if (!cliente?.email) return;
+  const data = new Date(agendamento.dataAgendamento).toLocaleDateString('pt-BR');
+  enviarCancelamentoAgendamento({
+    nome:       cliente.nome,
+    email:      cliente.email,
+    servico:    agendamento.servico,
+    profissional: agendamento.profissional,
+    data,
+    horario:    agendamento.horarioInicio,
+    nomeEmpresa: empresa?.nomeEmpresa,
+  }).catch(err => console.warn('[Email] Cancelamento:', err.message));
+}
 
 /**
  * Executado quando um agendamento é concluído.
@@ -104,7 +148,9 @@ export const criar = async (req, res) => {
           mensagem: 'Horário não disponível para este profissional nesta data',
         });
       }
-    } catch (_) {}
+    } catch (conflictErr) {
+      console.warn('[Agendamento] Falha ao verificar conflito de horário:', conflictErr.message);
+    }
 
     const dados = {
       empresa:         req.usuario?.id,
@@ -129,6 +175,11 @@ export const criar = async (req, res) => {
     // Se já foi criado como concluído, aplica a regra de negócio
     if (agendamento.status === 'concluido') {
       await onConcluido(agendamento, req.usuario?.id);
+    }
+
+    // Notificação de confirmação (fire-and-forget)
+    if (agendamento.status === 'agendado' || agendamento.status === 'aguardando') {
+      notificarConfirmacao(agendamento, req.usuario?.id);
     }
 
     res.status(201).json({ sucesso: true, mensagem: 'Agendamento criado com sucesso', dados: agendamento });
@@ -204,11 +255,14 @@ export const atualizar = async (req, res) => {
 
     // ── Regras de negócio por mudança de status ──────────────────
     if (statusAnterior !== 'concluido' && novoStatus === 'concluido') {
-      // Agendamento foi CONCLUÍDO → gera receita e comissão
       await onConcluido(agendamento, empresa);
     } else if (statusAnterior === 'concluido' && novoStatus !== 'concluido') {
-      // Agendamento foi REVERTIDO de concluído → estorna receita e comissão
       await onDesconcluido(agendamento, empresa);
+    }
+
+    // Notificação de cancelamento (fire-and-forget)
+    if (statusAnterior !== 'cancelado' && novoStatus === 'cancelado') {
+      notificarCancelamento(agendamento, empresa);
     }
 
     res.json({ sucesso: true, mensagem: 'Atualizado', dados: agendamento });
@@ -227,6 +281,11 @@ export const cancelar = async (req, res) => {
     // Se era concluído, estorna receita e comissão ao excluir
     if (agendamento.status === 'concluido') {
       await onDesconcluido(agendamento, agendamento.empresa?.toString());
+    }
+
+    // Notificar cancelamento se o agendamento ainda estava ativo (fire-and-forget)
+    if (['agendado', 'aguardando'].includes(agendamento.status)) {
+      notificarCancelamento(agendamento, agendamento.empresa?.toString());
     }
 
     res.json({ sucesso: true, mensagem: 'Agendamento removido' });

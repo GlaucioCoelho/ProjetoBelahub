@@ -22,7 +22,7 @@ export const listar = async (req, res) => {
 
 export const obter = async (req, res) => {
   try {
-    const comanda = await Comanda.findById(req.params.id);
+    const comanda = await Comanda.findOne({ _id: req.params.id, empresa: req.usuario?.id });
     if (!comanda) return res.status(404).json({ sucesso: false, mensagem: 'Comanda não encontrada' });
     res.json({ sucesso: true, comanda });
   } catch (err) {
@@ -52,7 +52,11 @@ export const criar = async (req, res) => {
 
 export const atualizar = async (req, res) => {
   try {
-    const comanda = await Comanda.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const comanda = await Comanda.findOneAndUpdate(
+      { _id: req.params.id, empresa: req.usuario?.id },
+      req.body,
+      { new: true, runValidators: true }
+    );
     if (!comanda) return res.status(404).json({ sucesso: false, mensagem: 'Comanda não encontrada' });
     res.json({ sucesso: true, comanda });
   } catch (err) {
@@ -62,7 +66,11 @@ export const atualizar = async (req, res) => {
 
 export const fechar = async (req, res) => {
   try {
-    const comanda = await Comanda.findByIdAndUpdate(req.params.id, { status: 'fechada' }, { new: true });
+    const comanda = await Comanda.findOneAndUpdate(
+      { _id: req.params.id, empresa: req.usuario?.id },
+      { status: 'fechada' },
+      { new: true }
+    );
     if (!comanda) return res.status(404).json({ sucesso: false, mensagem: 'Comanda não encontrada' });
     res.json({ sucesso: true, comanda });
   } catch (err) {
@@ -72,7 +80,8 @@ export const fechar = async (req, res) => {
 
 export const deletar = async (req, res) => {
   try {
-    await Comanda.findByIdAndDelete(req.params.id);
+    const comanda = await Comanda.findOneAndDelete({ _id: req.params.id, empresa: req.usuario?.id });
+    if (!comanda) return res.status(404).json({ sucesso: false, mensagem: 'Comanda não encontrada' });
     res.json({ sucesso: true });
   } catch (err) {
     res.status(500).json({ sucesso: false, mensagem: err.message });

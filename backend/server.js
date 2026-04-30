@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
+import { handleWebhook } from './src/controllers/stripeController.js';
+import stripeRoutes from './src/routes/stripeRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
 import agendamentoRoutes from './src/routes/agendamentoRoutes.js';
 import clienteRoutes from './src/routes/clienteRoutes.js';
@@ -18,6 +21,7 @@ import servicoRoutes from './src/routes/servicoRoutes.js';
 import pacoteRoutes  from './src/routes/pacoteRoutes.js';
 import comandaRoutes from './src/routes/comandaRoutes.js';
 import adminRoutes   from './src/routes/adminRoutes.js';
+import { iniciarJobLembrete } from './src/jobs/reminderJob.js';
 
 // Carrega variáveis de ambiente
 dotenv.config();
@@ -39,6 +43,9 @@ app.use(cors({
   origin: frontendUrl,
   credentials: true
 }));
+
+// Stripe webhook must receive raw body before express.json parses it
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 
 app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -97,12 +104,12 @@ app.use('/api/servicos', servicoRoutes);
 app.use('/api/pacotes',  pacoteRoutes);
 app.use('/api/comandas', comandaRoutes);
 app.use('/api/admin',   adminRoutes);
+app.use('/api/stripe',  stripeRoutes);
 
 // Debug - verificar se frontend build existe
 app.get('/api/debug/status', (req, res) => {
-  const fs = require('fs');
   const indexPath = path.join(frontendBuildPath, 'index.html');
-  const exists = fs.existsSync(indexPath);
+  const exists = existsSync(indexPath);
   res.json({
     status: 'ok',
     frontendBuildPath,
@@ -135,6 +142,8 @@ app.use((err, req, res, next) => {
 // Inicializar servidor
 const iniciarServidor = async () => {
   await conectarMongoDB();
+
+  iniciarJobLembrete();
 
   app.listen(PORT, () => {
     console.log(`🚀 BelaHub Backend rodando em http://localhost:${PORT}`);

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Produto from '../models/Produto.js';
 import Estoque from '../models/Estoque.js';
 
