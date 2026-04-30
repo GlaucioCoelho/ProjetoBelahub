@@ -157,6 +157,32 @@ export const obterMeuPerfil = async (req, res) => {
   }
 };
 
+export const completarOnboarding = async (req, res) => {
+  try {
+    const usuario = await Usuario.findByIdAndUpdate(
+      req.usuario.id,
+      { onboardingCompleted: true },
+      { new: true }
+    );
+
+    if (!usuario) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
+    }
+
+    res.status(200).json({
+      sucesso: true,
+      mensagem: 'Onboarding completado',
+      usuario: usuario.toJSON()
+    });
+  } catch (error) {
+    console.error('Erro ao completar onboarding:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao completar onboarding'
+    });
+  }
+};
+
 // Fazer logout (frontend remove o token)
 export const logout = async (req, res) => {
   res.status(200).json({

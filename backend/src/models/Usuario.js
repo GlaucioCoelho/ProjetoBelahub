@@ -48,6 +48,7 @@ const usuarioSchema = new mongoose.Schema(
     },
     stripeCustomerId:     { type: String, default: null },
     stripeSubscriptionId: { type: String, default: null },
+    onboardingCompleted:  { type: Boolean, default: false },
   },
   { timestamps: true }
 );
