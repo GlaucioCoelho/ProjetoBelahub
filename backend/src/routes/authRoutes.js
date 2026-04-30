@@ -4,7 +4,9 @@ import {
   login,
   obterMeuPerfil,
   logout,
-  completarOnboarding
+  completarOnboarding,
+  atualizarPerfil,
+  alterarSenha
 } from '../controllers/authController.js';
 import { proteger } from '../middlewares/autenticacao.js';
 import { authLimiter } from '../middlewares/rateLimiter.js';
@@ -18,6 +20,8 @@ router.post('/logout', logout);
 
 // Rotas protegidas
 router.get('/me', proteger, obterMeuPerfil);
+router.put('/perfil', proteger, atualizarPerfil);
+router.post('/alterar-senha', proteger, alterarSenha);
 router.post('/onboarding-completo', proteger, completarOnboarding);
 
 export default router;

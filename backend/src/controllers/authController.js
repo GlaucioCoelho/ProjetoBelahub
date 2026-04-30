@@ -190,3 +190,112 @@ export const logout = async (req, res) => {
     mensagem: 'Logout realizado com sucesso'
   });
 };
+
+// Atualizar perfil (protegido)
+export const atualizarPerfil = async (req, res) => {
+  try {
+    const { nome, telefone, nomeEmpresa, cnpj, cidade, estado, tipoNegocio } = req.body;
+
+    const usuario = await Usuario.findById(req.usuario.id);
+    if (!usuario) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
+    }
+
+    if (nome) usuario.nome = nome.trim();
+    if (telefone) usuario.telefone = telefone.trim();
+    if (nomeEmpresa) usuario.nomeEmpresa = nomeEmpresa.trim();
+
+    if (cnpj || cidade || estado || tipoNegocio) {
+      usuario.metadados = usuario.metadados || {};
+      if (cnpj) usuario.metadados.cnpj = cnpj.trim();
+      if (cidade) usuario.metadados.cidade = cidade.trim();
+      if (estado) usuario.metadados.estado = estado.trim();
+      if (tipoNegocio) usuario.metadados.tipoNegocio = tipoNegocio;
+    }
+
+    await usuario.save();
+
+    AuditLog.create({
+      empresa: usuario._id,
+      usuario: usuario._id,
+      acao: 'perfil_atualizado',
+      descricao: `Perfil atualizado: ${usuario.email}`,
+      ip: req.ip
+    }).catch(() => {});
+
+    res.status(200).json({
+      sucesso: true,
+      mensagem: 'Perfil atualizado com sucesso',
+      usuario: usuario.toJSON()
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao atualizar perfil'
+    });
+  }
+};
+
+// Alterar senha (protegido)
+export const alterarSenha = async (req, res) => {
+  try {
+    const { senhaAtual, senhaNova, confirmarSenha } = req.body;
+
+    if (!senhaAtual || !senhaNova || !confirmarSenha) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Senha atual, nova senha e confirmação são obrigatórias'
+      });
+    }
+
+    if (senhaNova !== confirmarSenha) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Novas senhas não conferem'
+      });
+    }
+
+    if (senhaNova.length < 6) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Nova senha deve ter no mínimo 6 caracteres'
+      });
+    }
+
+    const usuario = await Usuario.findById(req.usuario.id).select('+senha');
+    if (!usuario) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
+    }
+
+    const senhaValida = await usuario.compararSenha(senhaAtual);
+    if (!senhaValida) {
+      return res.status(401).json({
+        sucesso: false,
+        mensagem: 'Senha atual inválida'
+      });
+    }
+
+    usuario.senha = senhaNova;
+    await usuario.save();
+
+    AuditLog.create({
+      empresa: usuario._id,
+      usuario: usuario._id,
+      acao: 'senha_alterada',
+      descricao: `Senha alterada: ${usuario.email}`,
+      ip: req.ip
+    }).catch(() => {});
+
+    res.status(200).json({
+      sucesso: true,
+      mensagem: 'Senha alterada com sucesso'
+    });
+  } catch (error) {
+    console.error('Erro ao alterar senha:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao alterar senha'
+    });
+  }
+};

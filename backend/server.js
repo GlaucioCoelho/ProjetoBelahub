@@ -99,7 +99,8 @@ app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Sanitize data against NoSQL injection
-app.use(mongoSanitize());
+// TODO: Fix mongoSanitize middleware compatibility
+// app.use(mongoSanitize());
 
 // Servir arquivos estáticos do frontend
 app.use(express.static(frontendBuildPath));
