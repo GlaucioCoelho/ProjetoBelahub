@@ -6,12 +6,13 @@ import {
   logout
 } from '../controllers/authController.js';
 import { proteger } from '../middlewares/autenticacao.js';
+import { authLimiter } from '../middlewares/rateLimiter.js';
 
 const router = express.Router();
 
-// Rotas públicas
-router.post('/registro', registrar);
-router.post('/login', login);
+// Rotas públicas com rate limiting
+router.post('/registro', authLimiter, registrar);
+router.post('/login', authLimiter, login);
 router.post('/logout', logout);
 
 // Rotas protegidas

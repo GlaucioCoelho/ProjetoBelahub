@@ -1,12 +1,13 @@
 import express from 'express';
 import * as clienteController from '../controllers/clienteController.js';
 import { proteger } from '../middlewares/autenticacao.js';
+import { verificarLimiteClientes } from '../middlewares/verificarLimitesPlano.js';
 
 const router = express.Router();
 
 router.use(proteger);
 
-router.post('/', clienteController.criar);
+router.post('/', verificarLimiteClientes, clienteController.criar);
 router.get('/', clienteController.listar);
 router.get('/:id', clienteController.obter);
 router.get('/:id/agendamentos', clienteController.obterAgendamentos);

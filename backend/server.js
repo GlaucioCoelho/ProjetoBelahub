@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import mongoSanitize from 'mongo-sanitize';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
@@ -38,21 +39,40 @@ const frontendBuildPath = path.join(__dirname, '..', 'frontend', 'build');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Detectar CORS origin com fallback seguro para produção
-const frontendUrl = process.env.FRONTEND_URL ||
-  (process.env.NODE_ENV === 'production' ? 'https://belahub-production.up.railway.app' : 'http://localhost:3000');
+// Configurar CORS origins
+const corsOrigins = [];
+if (process.env.FRONTEND_URL) corsOrigins.push(process.env.FRONTEND_URL);
+if (process.env.FRONTEND_URL_PROD) corsOrigins.push(process.env.FRONTEND_URL_PROD);
+if (process.env.NODE_ENV === 'development') corsOrigins.push('http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000');
+
+// Fallback para produção se nenhuma origin for configurada
+const allowedOrigins = corsOrigins.length > 0 ? corsOrigins : ['https://belahub.onrender.com'];
+
+// CORS middleware with origin validation function
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
 // Middlewares
-app.use(cors({
-  origin: frontendUrl,
-  credentials: true
-}));
+app.use(cors(corsOptions));
 
 // Stripe webhook must receive raw body before express.json parses it
 app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), handleWebhook);
 
 app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Sanitize data against NoSQL injection
+app.use(mongoSanitize());
 
 // Servir arquivos estáticos do frontend
 app.use(express.static(frontendBuildPath));
@@ -135,7 +155,8 @@ const iniciarServidor = async () => {
   app.listen(PORT, () => {
     console.log(`🚀 BelaHub Backend rodando em http://localhost:${PORT}`);
     console.log(`📝 API Health: http://localhost:${PORT}/api/health`);
-    console.log(`🌍 CORS habilitado para: ${process.env.FRONTEND_URL}`);
+    console.log(`🌍 CORS habilitado para: ${allowedOrigins.join(', ')}`);
+    console.log(`🔐 Security: Rate limiting + NoSQL injection protection ativa`);
     console.log(`📚 Endpoints disponíveis:`);
     console.log(`   POST   /api/auth/registro`);
     console.log(`   POST   /api/auth/login`);
