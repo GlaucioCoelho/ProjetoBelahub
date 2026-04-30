@@ -5,8 +5,10 @@ import { enviarBoasVindas } from '../utils/emailService.js';
 
 // Gerar JWT Token
 const gerarToken = (usuario) => {
-  const jwtSecret = process.env.JWT_SECRET || 'belahub-jwt-secret-key-production-2024-secure';
-  return jwt.sign({ id: usuario._id, role: usuario.role }, jwtSecret, {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET environment variable is not set');
+  }
+  return jwt.sign({ id: usuario._id, role: usuario.role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };

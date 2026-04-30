@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { existsSync } from 'fs';
 import { handleWebhook } from './src/controllers/stripeController.js';
 import stripeRoutes from './src/routes/stripeRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
@@ -25,6 +24,11 @@ import { iniciarJobLembrete } from './src/jobs/reminderJob.js';
 
 // Carrega variáveis de ambiente
 dotenv.config();
+
+if (!process.env.JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET environment variable is not set. Set it before starting the server.');
+  process.exit(1);
+}
 
 // Configuração de diretórios para ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -57,11 +61,7 @@ app.use(express.static(frontendBuildPath));
 const conectarMongoDB = async () => {
   try {
     const conn = await mongoose.connect(
-      process.env.MONGODB_URI || 'mongodb://localhost:27017/belahub',
-      {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      }
+      process.env.MONGODB_URI || 'mongodb://localhost:27017/belahub'
     );
     console.log(`✅ MongoDB conectado: ${conn.connection.host}`);
   } catch (error) {
@@ -105,19 +105,6 @@ app.use('/api/pacotes',  pacoteRoutes);
 app.use('/api/comandas', comandaRoutes);
 app.use('/api/admin',   adminRoutes);
 app.use('/api/stripe',  stripeRoutes);
-
-// Debug - verificar se frontend build existe
-app.get('/api/debug/status', (req, res) => {
-  const indexPath = path.join(frontendBuildPath, 'index.html');
-  const exists = existsSync(indexPath);
-  res.json({
-    status: 'ok',
-    frontendBuildPath,
-    indexHtmlExists: exists,
-    buildPath: frontendBuildPath,
-    cwd: process.cwd()
-  });
-});
 
 // Fallback para SPA (Single Page Application) - servir index.html para rotas não-API
 app.get('*', (req, res) => {
