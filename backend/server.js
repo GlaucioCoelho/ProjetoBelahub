@@ -21,6 +21,7 @@ import servicoRoutes from './src/routes/servicoRoutes.js';
 import pacoteRoutes  from './src/routes/pacoteRoutes.js';
 import comandaRoutes from './src/routes/comandaRoutes.js';
 import adminRoutes   from './src/routes/adminRoutes.js';
+import publicAgendamentoRoutes from './src/routes/publicAgendamentoRoutes.js';
 import { iniciarJobLembrete } from './src/jobs/reminderJob.js';
 
 // Carrega variáveis de ambiente
@@ -101,6 +102,9 @@ app.get('/api/health', (req, res) => {
 
 // Rotas de Autenticação
 app.use('/api/auth', authRoutes);
+
+// Rotas de Agendamentos Públicas (sem autenticação)
+app.use('/api/public', publicAgendamentoRoutes);
 
 // Rotas de Agendamentos (Sprint 2)
 app.use('/api/agendamentos', agendamentoRoutes);
