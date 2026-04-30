@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">78% </span>
+                <span class="strong">76% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>39/50</span>
+                <span class='fraction'>38/50</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">78% </span>
+                <span class="strong">76% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>39/50</span>
+                <span class='fraction'>38/50</span>
             </div>
         
             
@@ -237,9 +237,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -279,21 +279,21 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -402,10 +402,10 @@ import { enviarBoasVindas } from '../utils/emailService.js';
 &nbsp;
 // Gerar JWT Token
 const gerarToken = (usuario) =&gt; {
-  <span class="missing-if-branch" title="else path not taken" >E</span>if (!process.env.JWT_SECRET) {
-    throw new Error('JWT_SECRET environment variable is not set');
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (!process.env.JWT_SECRET) {
+<span class="cstat-no" title="statement not covered" >    throw new Error('JWT_SECRET environment variable is not set');</span>
   }
-<span class="cstat-no" title="statement not covered" >  return jwt.sign({ id: usuario._id, role: usuario.role }, process.env.JWT_SECRET, {</span>
+  return jwt.sign({ id: usuario._id, role: usuario.role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };
@@ -445,24 +445,24 @@ export const registrar = async (req, res) =&gt; {
     const token = gerarToken(usuario);
 &nbsp;
     // Enviar e-mail de boas-vindas (não bloqueia o registro se falhar)
-<span class="cstat-no" title="statement not covered" >    enviarBoasVindas({ nome, email, nomeEmpresa }).catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt;</span>
+    enviarBoasVindas({ nome, email, nomeEmpresa }).catch(<span class="fstat-no" title="function not covered" >er</span>r =&gt;
 <span class="cstat-no" title="statement not covered" >      console.warn('[Email] Falha ao enviar boas-vindas:', err.message)</span>
     );
 &nbsp;
     // Responder com sucesso
-<span class="cstat-no" title="statement not covered" >    res.status(201).json({</span>
+    res.status(201).json({
       sucesso: true,
       mensagem: 'Usuário registrado com sucesso',
       token,
       usuario: usuario.toJSON()
     });
   } catch (error) {
-    console.error('Erro ao registrar:', error);
-    console.error('Stack trace:', error.stack);
-    res.status(500).json({
+<span class="cstat-no" title="statement not covered" >    console.error('Erro ao registrar:', error);</span>
+<span class="cstat-no" title="statement not covered" >    console.error('Stack trace:', error.stack);</span>
+<span class="cstat-no" title="statement not covered" >    res.status(500).json({</span>
       sucesso: false,
-      mensagem: error.message || <span class="branch-1 cbranch-no" title="branch not covered" >'Erro ao registrar usuário',</span>
-      erro: process.env.NODE_ENV === 'development' ? <span class="branch-0 cbranch-no" title="branch not covered" >error.message </span>: undefined
+      mensagem: error.message || 'Erro ao registrar usuário',
+      erro: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -568,7 +568,7 @@ export const logout = <span class="fstat-no" title="function not covered" >as</s
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-30T15:10:55.883Z
+                at 2026-04-30T15:18:04.549Z
             </div>
         <script src="../prettify.js"></script>
         <script>
