@@ -1,0 +1,26 @@
+# Copy this file to docker-compose.override.yml for local customization.
+# Docker Compose automatically merges it with docker-compose.yml.
+# Never commit docker-compose.override.yml — it holds your personal secrets.
+
+services:
+  backend:
+    environment:
+      # Override with real credentials for local testing
+      JWT_SECRET: your_custom_secret_at_least_32_chars_long
+      STRIPE_SECRET_KEY: sk_test_your_key_here
+      STRIPE_PUBLIC_KEY: pk_test_your_key_here
+      STRIPE_WEBHOOK_SECRET: whsec_your_webhook_secret
+      SMTP_USER: your_email@gmail.com
+      SMTP_PASS: your_gmail_app_password
+      # Twilio (optional)
+      TWILIO_ACCOUNT_SID: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      TWILIO_AUTH_TOKEN: your_auth_token
+      TWILIO_PHONE_NUMBER: "+15551234567"
+
+  mongodb:
+    # Expose on a non-default port to avoid conflicts with a local MongoDB instance
+    # ports:
+    #   - "27018:27017"
+    # Or persist data to a custom host path instead of a named volume:
+    # volumes:
+    #   - /path/to/your/data:/data/db
