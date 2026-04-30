@@ -76,6 +76,29 @@ export const createCheckoutSession = async (req, res) => {
   }
 };
 
+// POST /api/stripe/portal
+// Creates a Stripe Billing Portal session for self-service plan management
+export const createBillingPortalSession = async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario.id);
+    if (!usuario) return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
+    if (!usuario.stripeCustomerId) {
+      return res.status(400).json({ sucesso: false, mensagem: 'Nenhuma assinatura ativa para este usuário' });
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const session = await stripe.billingPortal.sessions.create({
+      customer: usuario.stripeCustomerId,
+      return_url: `${frontendUrl}/assinatura`,
+    });
+
+    res.json({ sucesso: true, url: session.url });
+  } catch (err) {
+    console.error('Billing Portal error:', err.message);
+    res.status(500).json({ sucesso: false, mensagem: err.message });
+  }
+};
+
 // POST /api/stripe/payment-intent
 // Creates a PaymentIntent for in-salon Comanda payment
 export const createPaymentIntent = async (req, res) => {
