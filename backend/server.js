@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import mongoSanitize from 'mongo-sanitize';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
@@ -99,8 +98,24 @@ app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Sanitize data against NoSQL injection
-// TODO: Fix mongoSanitize middleware compatibility
-// app.use(mongoSanitize());
+const sanitizeObject = (obj) => {
+  if (typeof obj !== 'object' || obj === null) return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeObject);
+
+  const sanitized = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (key.startsWith('$')) continue; // Skip MongoDB operators
+    sanitized[key] = typeof value === 'object' ? sanitizeObject(value) : value;
+  }
+  return sanitized;
+};
+
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object') {
+    req.body = sanitizeObject(req.body);
+  }
+  next();
+});
 
 // Servir arquivos estáticos do frontend
 app.use(express.static(frontendBuildPath));
