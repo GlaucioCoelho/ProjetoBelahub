@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import BasePage from './BasePage';
 import s from './shared.module.css';
 import { Settings, Save, AlertCircle, Check, Lock, Bell, CreditCard, Users } from 'lucide-react';
@@ -32,6 +32,25 @@ const SettingsPage = () => {
     novaSenha: '',
     confirmarSenha: '',
   });
+
+  useEffect(() => {
+    const carregarNotificacoes = async () => {
+      try {
+        const res = await axios.get('/api/auth/notificacoes');
+        if (res.data.sucesso && res.data.dados) {
+          setNotificacoes({
+            emailLembretesAgendamento: res.data.dados.emailLembretesAgendamento,
+            emailNovoCliente: res.data.dados.emailNovoCliente,
+            emailPagamento: res.data.dados.emailPagamento,
+            notificacoesPush: res.data.dados.notificacoesPush,
+          });
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar preferências de notificação:', err.message);
+      }
+    };
+    carregarNotificacoes();
+  }, []);
 
   const handleSalvarGeral = async () => {
     setLoading(true);
@@ -71,6 +90,24 @@ const SettingsPage = () => {
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } catch (err) {
       setMessage({ type: 'error', text: err.response?.data?.mensagem || 'Erro ao alterar senha' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSalvarNotificacoes = async () => {
+    setLoading(true);
+    try {
+      await axios.put('/api/auth/notificacoes', {
+        emailLembretesAgendamento: notificacoes.emailLembretesAgendamento,
+        emailNovoCliente: notificacoes.emailNovoCliente,
+        emailPagamento: notificacoes.emailPagamento,
+        notificacoesPush: notificacoes.notificacoesPush,
+      });
+      setMessage({ type: 'success', text: 'Preferências de notificação salvas com sucesso!' });
+      setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    } catch (err) {
+      setMessage({ type: 'error', text: err.response?.data?.mensagem || 'Erro ao salvar preferências' });
     } finally {
       setLoading(false);
     }
@@ -338,15 +375,17 @@ const SettingsPage = () => {
             </div>
 
             <button
+              onClick={handleSalvarNotificacoes}
+              disabled={loading}
               style={{
                 width: '100%',
                 padding: '12px',
-                background: '#10b981',
+                background: loading ? '#ccc' : '#10b981',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 6,
                 fontWeight: 600,
-                cursor: 'pointer',
+                cursor: loading ? 'not-allowed' : 'pointer',
                 fontSize: 14,
                 marginTop: 16,
                 display: 'flex',
@@ -356,7 +395,7 @@ const SettingsPage = () => {
               }}
             >
               <Save size={16} />
-              Salvar Preferências
+              {loading ? 'Salvando...' : 'Salvar Preferências'}
             </button>
           </SectionCard>
         )}

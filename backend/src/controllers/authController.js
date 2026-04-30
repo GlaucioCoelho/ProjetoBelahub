@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import Usuario from '../models/Usuario.js';
 import AuditLog from '../models/AuditLog.js';
+import Notificacoes from '../models/Notificacoes.js';
 import { enviarBoasVindas } from '../utils/emailService.js';
 
 // Gerar JWT Token
@@ -296,6 +297,76 @@ export const alterarSenha = async (req, res) => {
     res.status(500).json({
       sucesso: false,
       mensagem: error.message || 'Erro ao alterar senha'
+    });
+  }
+};
+
+// Salvar preferências de notificação (protegido)
+export const salvarNotificacoes = async (req, res) => {
+  try {
+    const { emailLembretesAgendamento, emailNovoCliente, emailPagamento, notificacoesPush } = req.body;
+
+    const notificacoes = await Notificacoes.findOneAndUpdate(
+      { empresa: req.usuario.id },
+      {
+        empresa: req.usuario.id,
+        emailLembretesAgendamento: emailLembretesAgendamento !== undefined ? emailLembretesAgendamento : true,
+        emailNovoCliente: emailNovoCliente !== undefined ? emailNovoCliente : true,
+        emailPagamento: emailPagamento !== undefined ? emailPagamento : true,
+        notificacoesPush: notificacoesPush !== undefined ? notificacoesPush : false,
+      },
+      { upsert: true, new: true }
+    );
+
+    AuditLog.create({
+      empresa: req.usuario.id,
+      usuario: req.usuario.id,
+      acao: 'notificacoes_atualizado',
+      descricao: 'Preferências de notificação atualizadas',
+      ip: req.ip
+    }).catch(() => {});
+
+    res.status(200).json({
+      sucesso: true,
+      mensagem: 'Preferências de notificação salvas com sucesso',
+      dados: notificacoes
+    });
+  } catch (error) {
+    console.error('Erro ao salvar notificações:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao salvar preferências'
+    });
+  }
+};
+
+// Obter preferências de notificação (protegido)
+export const obterNotificacoes = async (req, res) => {
+  try {
+    const notificacoes = await Notificacoes.findOne({ empresa: req.usuario.id });
+
+    if (!notificacoes) {
+      return res.status(200).json({
+        sucesso: true,
+        dados: {
+          empresa: req.usuario.id,
+          emailLembretesAgendamento: true,
+          emailNovoCliente: true,
+          emailPagamento: true,
+          notificacoesPush: false
+        }
+      });
+    }
+
+    res.status(200).json({
+      sucesso: true,
+      dados: notificacoes
+    });
+  } catch (error) {
+    console.error('Erro ao obter notificações:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao obter preferências'
     });
   }
 };

@@ -6,7 +6,9 @@ import {
   logout,
   completarOnboarding,
   atualizarPerfil,
-  alterarSenha
+  alterarSenha,
+  salvarNotificacoes,
+  obterNotificacoes
 } from '../controllers/authController.js';
 import { proteger } from '../middlewares/autenticacao.js';
 import { authLimiter } from '../middlewares/rateLimiter.js';
@@ -22,6 +24,8 @@ router.post('/logout', logout);
 router.get('/me', proteger, obterMeuPerfil);
 router.put('/perfil', proteger, atualizarPerfil);
 router.post('/alterar-senha', proteger, alterarSenha);
+router.get('/notificacoes', proteger, obterNotificacoes);
+router.put('/notificacoes', proteger, salvarNotificacoes);
 router.post('/onboarding-completo', proteger, completarOnboarding);
 
 export default router;
