@@ -12,6 +12,7 @@ import clienteService    from '../../services/clienteService';
 import agendamentoService from '../../services/agendamentoService';
 import funcionarioService from '../../services/funcionarioService';
 import servicoService     from '../../services/servicoService';
+import whatsappService    from '../../services/whatsappService';
 
 const EMPTY_FORM = {
   name: '', phone: '', email: '', city: '', bday: '', note: '', instagram: '', tag: 'regular',
@@ -333,7 +334,11 @@ export default function ClientsPage() {
                 <button className={cs.quickActionBtn}>
                   <Phone size={16}/> Ligar
                 </button>
-                <button className={cs.quickActionBtn} style={{ '--qc': '#25d366' }}>
+                <button
+                  className={cs.quickActionBtn}
+                  style={{ '--qc': '#25d366' }}
+                  onClick={() => whatsappService.abrirWhatsApp(selected.phone, whatsappService.gerarMensagemCliente(selected.name))}
+                >
                   <MessageCircle size={16}/> WhatsApp
                 </button>
                 <button
