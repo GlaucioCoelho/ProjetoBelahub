@@ -326,13 +326,28 @@
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
-    height: auto;
+    height: 100%;
     position: relative;
     background: var(--gradient-sidebar);
   }
-  .nav { max-height: 260px; }
-  .menuList { display: flex; flex-wrap: wrap; }
-  .menuItem { flex: 0 1 calc(50% - 4px); }
-  .sectionHeader { display: none; }
-  .footer { display: none; }
+  .logoSection {
+    padding: 20px 18px 12px;
+  }
+  .nav {
+    max-height: calc(100vh - 240px);
+  }
+  .menuList {
+    display: block;
+  }
+  .menuItem {
+    flex: none;
+    width: 100%;
+  }
+  .sectionHeader {
+    display: block;
+    padding-left: 12px;
+  }
+  .footer {
+    display: none;
+  }
 }
