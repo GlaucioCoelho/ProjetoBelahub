@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76% </span>
+                <span class="strong">78% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>38/50</span>
+                <span class='fraction'>39/50</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70.96% </span>
+                <span class="strong">67.74% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>22/31</span>
+                <span class='fraction'>21/31</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">76% </span>
+                <span class="strong">78% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>38/50</span>
+                <span class='fraction'>39/50</span>
             </div>
         
             
@@ -236,10 +236,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -347,19 +347,19 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -513,21 +513,21 @@ export const login = async (req, res) =&gt; {
     await usuario.save();
 &nbsp;
     // Audit log
-<span class="cstat-no" title="statement not covered" >    AuditLog.create({ empresa: usuario._id, usuario: usuario._id, acao: 'login', descricao: `Login: ${usuario.email}`, ip: req.ip }).catch(<span class="fstat-no" title="function not covered" >()</span> =&gt; {});</span>
+    AuditLog.create({ empresa: usuario._id, usuario: usuario._id, acao: 'login', descricao: `Login: ${usuario.email}`, ip: req.ip }).catch(<span class="fstat-no" title="function not covered" >()</span> =&gt; {});
 &nbsp;
-    const token = <span class="cstat-no" title="statement not covered" >gerarToken(usuario);</span>
+    const token = gerarToken(usuario);
 &nbsp;
-<span class="cstat-no" title="statement not covered" >    res.status(200).json({</span>
+    res.status(200).json({
       sucesso: true,
       mensagem: 'Login realizado com sucesso',
       token,
       usuario: usuario.toJSON()
     });
   } catch (error) {
-    console.error('Erro ao fazer login:', error);
-    res.status(500).json({
+<span class="cstat-no" title="statement not covered" >    console.error('Erro ao fazer login:', error);</span>
+<span class="cstat-no" title="statement not covered" >    res.status(500).json({</span>
       sucesso: false,
-      mensagem: error.message || <span class="branch-1 cbranch-no" title="branch not covered" >'Erro ao fazer login'</span>
+      mensagem: error.message || 'Erro ao fazer login'
     });
   }
 };
@@ -568,7 +568,7 @@ export const logout = <span class="fstat-no" title="function not covered" >as</s
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-30T15:18:04.549Z
+                at 2026-04-30T15:33:09.243Z
             </div>
         <script src="../prettify.js"></script>
         <script>
