@@ -1,22 +1,47 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Agendamento from '../models/Agendamento.js';
 import Servico from '../models/Servico.js';
 import Usuario from '../models/Usuario.js';
 import Cliente from '../models/Cliente.js';
 import { enviarConfirmacaoAgendamento } from '../utils/emailService.js';
+import { authLimiter } from '../middlewares/rateLimiter.js';
 
 const router = express.Router();
+
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+function sanitizeError(error) {
+  if (process.env.NODE_ENV === 'development') {
+    return error.message;
+  }
+  if (error.name === 'MongoError' || error.name === 'MongoServerError') {
+    return 'Erro ao processar requisição';
+  }
+  return error.message || 'Erro desconhecido';
+}
 
 router.get('/saloes/:salaoId/servicos', async (req, res) => {
   try {
     const { salaoId } = req.params;
+
+    if (!isValidObjectId(salaoId)) {
+      return res.status(400).json({ sucesso: false, mensagem: 'ID de salão inválido' });
+    }
+
+    const salon = await Usuario.findById(salaoId).select('_id');
+    if (!salon) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Salão não encontrado' });
+    }
 
     const servicos = await Servico.find({ empresa: salaoId })
       .select('nome duracao preco descricao');
 
     res.json({ sucesso: true, dados: servicos });
   } catch (erro) {
-    res.status(500).json({ sucesso: false, mensagem: erro.message });
+    console.error('[PublicServicos]', erro);
+    res.status(500).json({ sucesso: false, mensagem: sanitizeError(erro) });
   }
 });
 
@@ -25,8 +50,17 @@ router.get('/saloes/:salaoId/horarios', async (req, res) => {
     const { salaoId } = req.params;
     const { data, profissional, duracao = 60 } = req.query;
 
+    if (!isValidObjectId(salaoId)) {
+      return res.status(400).json({ sucesso: false, mensagem: 'ID de salão inválido' });
+    }
+
     if (!data) {
       return res.status(400).json({ sucesso: false, mensagem: 'Data é obrigatória' });
+    }
+
+    const salon = await Usuario.findById(salaoId).select('_id');
+    if (!salon) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Salão não encontrado' });
     }
 
     const dataAgendamento = new Date(data);
@@ -40,25 +74,30 @@ router.get('/saloes/:salaoId/horarios', async (req, res) => {
     }).select('horarioInicio duracao');
 
     const horariosOcupados = agendamentosDia.map(a => ({
-      inicio: a.horarioInicio,
-      fim: adicionarMinutos(a.horarioInicio, a.duracao || 60),
+      inicio: timeToMinutes(a.horarioInicio),
+      fim: timeToMinutes(adicionarMinutos(a.horarioInicio, a.duracao || 60)),
     }));
 
     const horariosDisponiveis = gerarHorariosDisponiveis(horariosOcupados, parseInt(duracao));
 
     res.json({ sucesso: true, dados: horariosDisponiveis });
   } catch (erro) {
-    res.status(500).json({ sucesso: false, mensagem: erro.message });
+    console.error('[PublicHorarios]', erro);
+    res.status(500).json({ sucesso: false, mensagem: sanitizeError(erro) });
   }
 });
 
-router.post('/saloes/:salaoId/agendamentos', async (req, res) => {
+router.post('/saloes/:salaoId/agendamentos', authLimiter, async (req, res) => {
   try {
     const { salaoId } = req.params;
     const {
       nomeCliente, emailCliente, telefonecliente,
-      profissional, servico, dataAgendamento, horarioInicio, duracao, preco, notas,
+      profissional, servico, dataAgendamento, horarioInicio, duracao, notas,
     } = req.body;
+
+    if (!isValidObjectId(salaoId)) {
+      return res.status(400).json({ sucesso: false, mensagem: 'ID de salão inválido' });
+    }
 
     if (!nomeCliente || !profissional || !servico || !dataAgendamento || !horarioInicio) {
       return res.status(400).json({
@@ -67,8 +106,22 @@ router.post('/saloes/:salaoId/agendamentos', async (req, res) => {
       });
     }
 
+    if (emailCliente && !isValidEmail(emailCliente)) {
+      return res.status(400).json({ sucesso: false, mensagem: 'Email inválido' });
+    }
+
+    const salon = await Usuario.findById(salaoId).select('_id nomeEmpresa');
+    if (!salon) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Salão não encontrado' });
+    }
+
+    const servicoData = await Servico.findOne({ empresa: salaoId, nome: servico }).select('preco duracao');
+    if (!servicoData) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Serviço não encontrado' });
+    }
+
     const temConflito = await Agendamento.verificarConflito(
-      profissional, dataAgendamento, horarioInicio, duracao || 60
+      profissional, dataAgendamento, horarioInicio, duracao || servicoData.duracao || 60
     );
     if (temConflito) {
       return res.status(409).json({
@@ -101,8 +154,8 @@ router.post('/saloes/:salaoId/agendamentos', async (req, res) => {
       servico,
       dataAgendamento,
       horarioInicio,
-      duracao: duracao || 60,
-      preco: preco || 0,
+      duracao: servicoData.duracao || 60,
+      preco: servicoData.preco || 0,
       notas: notas || '',
       pagamento: 'Pendente',
       status: 'aguardando',
@@ -110,7 +163,6 @@ router.post('/saloes/:salaoId/agendamentos', async (req, res) => {
 
     if (emailCliente) {
       const data = new Date(dataAgendamento).toLocaleDateString('pt-BR');
-      const salon = await Usuario.findById(salaoId).select('nomeEmpresa');
       enviarConfirmacaoAgendamento({
         nome: nomeCliente,
         email: emailCliente,
@@ -119,7 +171,7 @@ router.post('/saloes/:salaoId/agendamentos', async (req, res) => {
         data,
         horario: horarioInicio,
         preco: agendamento.preco,
-        nomeEmpresa: salon?.nomeEmpresa || 'Salão',
+        nomeEmpresa: salon.nomeEmpresa || 'Salão',
       }).catch(err => console.warn('[Email] Confirmação:', err.message));
     }
 
@@ -130,9 +182,15 @@ router.post('/saloes/:salaoId/agendamentos', async (req, res) => {
     });
   } catch (erro) {
     console.error('[PublicBooking]', erro);
-    res.status(500).json({ sucesso: false, mensagem: erro.message });
+    res.status(500).json({ sucesso: false, mensagem: sanitizeError(erro) });
   }
 });
+
+function timeToMinutes(timeStr) {
+  if (!timeStr || typeof timeStr !== 'string') return 0;
+  const [horas, mins] = timeStr.split(':').map(Number);
+  return (horas || 0) * 60 + (mins || 0);
+}
 
 function adicionarMinutos(horario, minutos) {
   const [horas, mins] = horario.split(':').map(Number);
@@ -150,10 +208,11 @@ function gerarHorariosDisponiveis(horariosOcupados, duracao) {
   for (let h = HORARIO_INICIO; h < HORARIO_FIM; h++) {
     for (let m = 0; m < 60; m += 30) {
       const horario = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-      const horarioFim = adicionarMinutos(horario, duracao);
+      const horarioInicioMin = timeToMinutes(horario);
+      const horarioFimMin = horarioInicioMin + duracao;
 
       const temConflito = horariosOcupados.some(
-        ocupado => sobrepoe(horario, horarioFim, ocupado.inicio, ocupado.fim)
+        ocupado => horarioInicioMin < ocupado.fim && horarioFimMin > ocupado.inicio
       );
 
       if (!temConflito) {
@@ -163,10 +222,6 @@ function gerarHorariosDisponiveis(horariosOcupados, duracao) {
   }
 
   return horarios;
-}
-
-function sobrepoe(inicio1, fim1, inicio2, fim2) {
-  return inicio1 < fim2 && fim1 > inicio2;
 }
 
 export default router;

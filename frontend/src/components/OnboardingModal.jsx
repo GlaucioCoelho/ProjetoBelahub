@@ -16,13 +16,26 @@ const OnboardingModal = ({ isOpen, onComplete, usuario }) => {
       return;
     }
 
+    const duracao = parseInt(servico.duracao);
+    const preco = parseFloat(servico.preco);
+
+    if (duracao <= 0 || duracao > 480) {
+      setError('Duração deve ser entre 1 e 480 minutos');
+      return;
+    }
+
+    if (preco < 0) {
+      setError('Preço não pode ser negativo');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
       await axios.post('/api/servicos', {
-        nome: servico.nome,
-        duracao: parseInt(servico.duracao),
-        preco: parseFloat(servico.preco)
+        nome: servico.nome.trim(),
+        duracao,
+        preco
       });
       setStep(2);
       setServico({ nome: '', duracao: 60, preco: 0 });
@@ -39,12 +52,19 @@ const OnboardingModal = ({ isOpen, onComplete, usuario }) => {
       return;
     }
 
+    const comissao = parseFloat(profissional.comissaoPercentual);
+
+    if (comissao < 0 || comissao > 100) {
+      setError('Comissão deve ser entre 0 e 100%');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
       await axios.post('/api/funcionarios', {
-        nome: profissional.nome,
-        comissaoPercentual: parseFloat(profissional.comissaoPercentual)
+        nome: profissional.nome.trim(),
+        comissaoPercentual: comissao
       });
       handleConcluirOnboarding();
     } catch (err) {
