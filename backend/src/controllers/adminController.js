@@ -224,6 +224,10 @@ export const listarAuditLog = async (req, res) => {
 // ── Seed super admin ───────────────────────────────────────────────────────
 export const seedSuperAdmin = async (req, res) => {
   try {
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ sucesso: false, mensagem: 'JWT_SECRET environment variable is not set' });
+    }
+
     const existe = await Usuario.findOne({ role: 'super_admin' });
     if (existe) return res.status(400).json({ sucesso: false, mensagem: 'Super admin já existe.' });
 
@@ -231,7 +235,7 @@ export const seedSuperAdmin = async (req, res) => {
     if (!nome || !email || !senha) return res.status(400).json({ sucesso: false, mensagem: 'nome, email e senha são obrigatórios.' });
 
     const usuario = await Usuario.create({ nome, email, senha, role: 'super_admin', nomeEmpresa: 'BelaHub Admin', planoStatus: 'ativo' });
-    const token = jwt.sign({ id: usuario._id, role: 'super_admin' }, process.env.JWT_SECRET || 'belahub-jwt-secret-key-production-2024-secure', { expiresIn: '7d' });
+    const token = jwt.sign({ id: usuario._id, role: 'super_admin' }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.status(201).json({ sucesso: true, mensagem: 'Super admin criado.', token });
   } catch (err) {
     res.status(500).json({ sucesso: false, mensagem: err.message });

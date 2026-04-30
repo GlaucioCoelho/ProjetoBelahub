@@ -18,8 +18,7 @@ export const proteger = (req, res, next) => {
     }
 
     // Verificar token
-    const jwtSecret = process.env.JWT_SECRET || 'belahub-jwt-secret-key-production-2024-secure';
-    const decoded = jwt.verify(token, jwtSecret);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.usuario = decoded;
     next();
   } catch (error) {
@@ -61,7 +60,7 @@ export const superAdmin = [
     if (req.headers.authorization?.startsWith('Bearer')) token = req.headers.authorization.split(' ')[1];
     if (!token) return res.status(401).json({ sucesso: false, mensagem: 'Token não fornecido.' });
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'belahub-jwt-secret-key-production-2024-secure');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.usuario = decoded;
       next();
     } catch {

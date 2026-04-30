@@ -54,66 +54,65 @@ BelaHub/
 ## 🚀 Como Começar
 
 ### Pré-requisitos
-- **Node.js** 18+
-- **Docker** (opcional, para MongoDB)
-- **npm** ou **yarn**
+- **Docker** e **Docker Compose** v2+ (recomendado)
+- ou **Node.js** 18+ e **npm** para setup manual
 
-### Opção 1: Setup Rápido com Docker (Recomendado)
+### Opção 1: Docker Compose (Recomendado)
+
+Inicia MongoDB, backend e frontend com um único comando — sem instalar nada localmente.
 
 ```bash
 # 1. Clone o repositório
 git clone https://github.com/GlaucioCoelho/ProjetoBelahub.git
 cd ProjetoBelahub
 
-# 2. Inicie o MongoDB com Docker
-docker run -d --name belahub-mongo -p 27017:27017 \
-  -e MONGO_INITDB_ROOT_USERNAME=belahub_user \
-  -e MONGO_INITDB_ROOT_PASSWORD=HsmrcQSCscXYjVci \
-  -e MONGO_INITDB_DATABASE=belahub \
-  mongo:latest
+# 2. (Opcional) Personalize credenciais locais
+cp docker-compose.override.yml.example docker-compose.override.yml
+# Edite docker-compose.override.yml com seus secrets reais
 
-# 3. Configure o backend
-cd backend
-npm install
-npm run dev   # Node rodando em http://localhost:5000
+# 3. Suba todos os serviços
+docker compose up
 
-# 4. Em outro terminal, configure o frontend
-cd frontend
-npm install
-npm start     # React rodando em http://localhost:3000
+# Aguarde os containers iniciarem:
+#   MongoDB  → localhost:27017
+#   Backend  → http://localhost:5000
+#   Frontend → http://localhost:3000
+```
 
-# 5. Seed com dados de teste (em outro terminal)
-cd backend
-node scripts/seed.js
+Hot-reload está ativo: edite arquivos em `backend/` ou `frontend/src/` e as mudanças aparecem automaticamente.
+
+```bash
+# Seed com dados de teste (em outro terminal enquanto os containers rodam)
+docker compose exec backend node scripts/seed.js
+
+# Parar tudo
+docker compose down
+
+# Parar e apagar dados do MongoDB
+docker compose down -v
 ```
 
 **Credenciais de Teste:**
 - Email: `admin@belahub.com`
 - Senha: `123456`
 
-### Opção 2: MongoDB Local
+### Opção 2: Setup Manual (sem Docker)
 
-Se preferir usar MongoDB instalado localmente, atualize o `.env` do backend:
-
-```env
-MONGODB_URI=mongodb://localhost:27017/belahub
-```
-
-### Instalação Manual
+**Pré-requisito:** MongoDB rodando em `localhost:27017`.
 
 **Backend:**
 ```bash
 cd backend
 npm install
 cp .env.example .env  # Configure as variáveis
-npm run dev
+npm run dev           # http://localhost:5000
 ```
 
 **Frontend:**
 ```bash
 cd frontend
 npm install
-npm start
+npm start             # http://localhost:3000
 ```
 
 ## 📁 Estrutura de Pastas
@@ -276,19 +275,19 @@ npm run test
 
 ```bash
 # Ver status do MongoDB
-docker ps | grep belahub-mongo
+docker ps | grep belahub-mongodb
 
 # Parar MongoDB
-docker stop belahub-mongo
+docker stop belahub-mongodb
 
 # Reiniciar MongoDB
-docker start belahub-mongo
+docker start belahub-mongodb
 
 # Ver logs
-docker logs belahub-mongo
+docker logs belahub-mongodb
 
 # Remover container
-docker rm belahub-mongo
+docker rm belahub-mongodb
 ```
 
 ## 🤝 Contribuindo

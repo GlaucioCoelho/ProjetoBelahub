@@ -1,6 +1,7 @@
 import express from 'express';
 import * as funcionarioController from '../controllers/funcionarioController.js';
 import { proteger } from '../middlewares/autenticacao.js';
+import { verificarLimiteFuncionarios } from '../middlewares/verificarLimitesPlano.js';
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ const router = express.Router();
 router.use(proteger);
 
 // Rotas CRUD Funcionários
-router.post('/', funcionarioController.criar);
+router.post('/', verificarLimiteFuncionarios, funcionarioController.criar);
 router.get('/', funcionarioController.listar);
 router.get('/:id', funcionarioController.obter);
 router.put('/:id', funcionarioController.atualizar);
