@@ -1,9 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import BasePage from './BasePage';
-import s from './shared.module.css';
-import { Settings, Save, AlertCircle, Check, Lock, Bell, CreditCard, Users } from 'lucide-react';
+import { Settings, Save, AlertCircle, Check, Lock, Bell, CreditCard } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import axios from 'axios';
+import api from '../../services/api';
+
+const Tab = ({ id, label, icon: Icon, activeTab, setActiveTab }) => (
+  <button
+    onClick={() => setActiveTab(id)}
+    style={{
+      padding: '12px 16px',
+      border: 'none',
+      background: activeTab === id ? '#10b981' : '#f3f4f6',
+      color: activeTab === id ? '#fff' : '#374151',
+      borderRadius: 6,
+      cursor: 'pointer',
+      fontWeight: activeTab === id ? 600 : 500,
+      fontSize: 14,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      transition: 'all 0.2s'
+    }}
+  >
+    <Icon size={16} />
+    {label}
+  </button>
+);
+
+const SectionCard = ({ children }) => (
+  <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 24, marginBottom: 20 }}>
+    {children}
+  </div>
+);
 
 const SettingsPage = () => {
   const { usuario } = useAuthStore();
@@ -36,7 +64,7 @@ const SettingsPage = () => {
   useEffect(() => {
     const carregarNotificacoes = async () => {
       try {
-        const res = await axios.get('/api/auth/notificacoes');
+        const res = await api.get('/auth/notificacoes');
         if (res.data.sucesso && res.data.dados) {
           setNotificacoes({
             emailLembretesAgendamento: res.data.dados.emailLembretesAgendamento,
@@ -55,7 +83,7 @@ const SettingsPage = () => {
   const handleSalvarGeral = async () => {
     setLoading(true);
     try {
-      await axios.put('/api/auth/perfil', {
+      await api.put('/auth/perfil', {
         nomeEmpresa: geral.nomeEmpresa,
         telefone: geral.telefone,
         cnpj: geral.cnpj,
@@ -80,7 +108,7 @@ const SettingsPage = () => {
 
     setLoading(true);
     try {
-      await axios.post('/api/auth/alterar-senha', {
+      await api.post('/auth/alterar-senha', {
         senhaAtual: seguranca.senhaAtual,
         senhaNova: seguranca.novaSenha,
         confirmarSenha: seguranca.confirmarSenha,
@@ -98,7 +126,7 @@ const SettingsPage = () => {
   const handleSalvarNotificacoes = async () => {
     setLoading(true);
     try {
-      await axios.put('/api/auth/notificacoes', {
+      await api.put('/auth/notificacoes', {
         emailLembretesAgendamento: notificacoes.emailLembretesAgendamento,
         emailNovoCliente: notificacoes.emailNovoCliente,
         emailPagamento: notificacoes.emailPagamento,
@@ -113,45 +141,16 @@ const SettingsPage = () => {
     }
   };
 
-  const Tab = ({ id, label, icon: Icon }) => (
-    <button
-      onClick={() => setActiveTab(id)}
-      style={{
-        padding: '12px 16px',
-        border: 'none',
-        background: activeTab === id ? '#10b981' : '#f3f4f6',
-        color: activeTab === id ? '#fff' : '#374151',
-        borderRadius: 6,
-        cursor: 'pointer',
-        fontWeight: activeTab === id ? 600 : 500,
-        fontSize: 14,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        transition: 'all 0.2s'
-      }}
-    >
-      <Icon size={16} />
-      {label}
-    </button>
-  );
-
-  const SectionCard = ({ children }) => (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 24, marginBottom: 20 }}>
-      {children}
-    </div>
-  );
-
   return (
     <BasePage title="Configurações" description="Gerencie as configurações do seu salão" icon={Settings}>
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px' }}>
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
-          <Tab id="geral" label="Geral" icon={Settings} />
-          <Tab id="notificacoes" label="Notificações" icon={Bell} />
-          <Tab id="seguranca" label="Segurança" icon={Lock} />
-          <Tab id="assinatura" label="Assinatura" icon={CreditCard} />
+          <Tab id="geral"        label="Geral"         icon={Settings}    activeTab={activeTab} setActiveTab={setActiveTab} />
+          <Tab id="notificacoes" label="Notificações"   icon={Bell}        activeTab={activeTab} setActiveTab={setActiveTab} />
+          <Tab id="seguranca"    label="Segurança"      icon={Lock}        activeTab={activeTab} setActiveTab={setActiveTab} />
+          <Tab id="assinatura"   label="Assinatura"     icon={CreditCard}  activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
 
         {/* Message Alert */}

@@ -19,7 +19,6 @@ import movimentacaoRoutes from './src/routes/movimentacaoRoutes.js';
 import alertasRoutes from './src/routes/alertasRoutes.js';
 import servicoRoutes from './src/routes/servicoRoutes.js';
 import pacoteRoutes  from './src/routes/pacoteRoutes.js';
-import comandaRoutes from './src/routes/comandaRoutes.js';
 import adminRoutes   from './src/routes/adminRoutes.js';
 import publicAgendamentoRoutes from './src/routes/publicAgendamentoRoutes.js';
 import { iniciarJobLembrete } from './src/jobs/reminderJob.js';
@@ -168,7 +167,6 @@ app.use('/api/movimentacoes', movimentacaoRoutes);
 app.use('/api/alertas', alertasRoutes);
 app.use('/api/servicos', servicoRoutes);
 app.use('/api/pacotes',  pacoteRoutes);
-app.use('/api/comandas', comandaRoutes);
 app.use('/api/admin',   adminRoutes);
 app.use('/api/stripe',  stripeRoutes);
 

@@ -298,6 +298,80 @@ export default function AppointmentsPage() {
         {/* ── LIST VIEW ── */}
         {view === 'list' && (
           <div className={s.card}>
+
+            {/* Cards — mobile only */}
+            <div className={ap.mobileList}>
+              {filtered.length === 0 ? (
+                <p style={{textAlign:'center',padding:'32px 0',color:'var(--text-tertiary)',fontSize:14}}>
+                  Nenhum atendimento encontrado
+                </p>
+              ) : filtered.map(a => {
+                const prof = getProf(a.profId);
+                const st   = STATUS_CFG[a.status];
+                return (
+                  <div key={a.id} className={ap.apptCard}>
+                    <div className={ap.apptCardTop}>
+                      <span className={ap.apptCardTime}>
+                        <Clock size={12}/>{a.time}
+                      </span>
+                      <button className={ap.statusBadge}
+                        style={{color:st.color, background:st.bg}}
+                        onClick={() => setStatusMenu(statusMenu===a.id ? null : a.id)}>
+                        {st.label} <ChevronRight size={11} style={{transform:'rotate(90deg)'}}/>
+                      </button>
+                      {statusMenu===a.id && (
+                        <div className={ap.statusDropdown}>
+                          {Object.entries(STATUS_CFG).map(([k,v]) => (
+                            <button key={k} className={`${ap.statusOption} ${a.status===k ? ap.statusOptionActive : ''}`}
+                              onClick={() => changeStatus(a.id,k)}>
+                              <span style={{width:7,height:7,borderRadius:'50%',background:v.color,display:'inline-block'}}/>
+                              {v.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className={ap.apptCardBody}>
+                      <span className={ap.apptCardClient}>{a.client}</span>
+                      <span className={ap.apptCardService}>{a.service} · {a.duration}min</span>
+                    </div>
+                    <div className={ap.apptCardMeta}>
+                      <div className={ap.apptCardProf}>
+                        <div className={ap.apptCardProfAvatar} style={{background: prof.color || '#7c3aed'}}>
+                          {prof.initials || a.profId?.[0]?.toUpperCase() || '?'}
+                        </div>
+                        {prof.name || a.profId}
+                      </div>
+                      <span className={ap.apptCardPrice}>R$ {a.price}</span>
+                    </div>
+                    <div className={ap.apptCardActions}>
+                      {a.status==='scheduled' && (
+                        <button className={ap.actionBtn} style={{'--ac':'#22c55e'}} title="Confirmar chegada"
+                          onClick={() => changeStatus(a.id,'waiting')}>
+                          <Check size={13}/>
+                        </button>
+                      )}
+                      {a.status==='waiting' && (
+                        <button className={ap.actionBtn} style={{'--ac':'#22c55e'}} title="Concluir"
+                          onClick={() => changeStatus(a.id,'completed')}>
+                          <Check size={13}/>
+                        </button>
+                      )}
+                      <button className={ap.actionBtn} title="Editar" onClick={() => openEdit(a)}>
+                        <Edit2 size={13}/>
+                      </button>
+                      <button className={`${ap.actionBtn} ${ap.actionBtnDanger}`} title="Excluir"
+                        onClick={() => setDeleteId(a.id)}>
+                        <Trash2 size={13}/>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Tabela — desktop only */}
+            <div className={ap.desktopTable}>
             <table className={s.table}>
               <thead>
                 <tr>
@@ -380,6 +454,7 @@ export default function AppointmentsPage() {
                 })}
               </tbody>
             </table>
+            </div>{/* /desktopTable */}
           </div>
         )}
 

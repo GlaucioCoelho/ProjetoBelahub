@@ -446,22 +446,125 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Responsivo ─────────────────────────── */
+/* ── Responsivo — tablet ─────────────────── */
 @media (max-width: 900px) {
   .root { flex-direction: column; }
-  .brandPanel { min-height: auto; padding: 32px 28px 40px; }
+
+  .brandPanel {
+    min-height: auto;
+    padding: 32px 28px 36px;
+  }
   .brandTagline { font-size: 28px; }
   .brandTagline span { font-size: 22px; }
+  .brandDesc { display: none; }
   .featureList { display: none; }
+  .brandFooter { display: none; }
+
   .formPanel {
     width: 100%;
-    padding: 36px 24px 48px;
+    padding: 36px 32px 48px;
     border-left: none;
     border-top: 1px solid rgba(124,58,237,0.1);
+    background: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
+  .formInner { max-width: 480px; }
 }
-@media (max-width: 480px) {
-  .brandPanel { padding: 24px 20px 28px; }
-  .brandTagline { font-size: 24px; }
-  .formPanel { padding: 28px 20px 40px; }
+
+/* ── Responsivo — mobile ─────────────────── */
+@media (max-width: 640px) {
+  .root {
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+
+  /* Oculta o painel de marca, substitui por header compacto */
+  .brandPanel { display: none; }
+
+  .formPanel {
+    width: 100%;
+    min-height: 100dvh;
+    padding: 0;
+    border: none;
+    background: #f5f3ff;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* Header colorido no topo substituindo o brand panel */
+  .formPanel::before {
+    content: '';
+    display: block;
+    height: 180px;
+    flex-shrink: 0;
+    background: linear-gradient(145deg, #4f1ba8 0%, #7c3aed 45%, #e8185a 100%);
+    border-radius: 0 0 32px 32px;
+  }
+
+  .formInner {
+    max-width: 100%;
+    width: 100%;
+    background: #fff;
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px 32px;
+    padding-bottom: calc(32px + env(safe-area-inset-bottom));
+    margin-top: -48px;
+    box-shadow: 0 -4px 32px rgba(124,58,237,0.1);
+    flex: 1;
+    animation: fadeInUp 0.35s cubic-bezier(0.4,0,0.2,1) both;
+  }
+
+  .formLogoRow {
+    margin-bottom: 20px;
+  }
+
+  .formLogoIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .formLogoText { font-size: 20px; }
+
+  .formTitle { font-size: 22px; margin-bottom: 4px; }
+  .formSubtitle { font-size: 13px; margin-bottom: 20px; }
+
+  .tabs { margin-bottom: 18px; }
+  .tab { font-size: 13px; height: 38px; }
+
+  .form { gap: 14px; }
+
+  .field label { font-size: 11px; }
+
+  .input {
+    height: 48px;
+    font-size: 16px; /* evita zoom automático no iOS */
+    border-radius: 10px;
+    padding: 0 14px 0 42px;
+  }
+
+  .btnPrimary {
+    height: 50px;
+    font-size: 15px;
+    border-radius: 12px;
+    margin-top: 6px;
+  }
+
+  .errorBox { font-size: 13px; }
+
+  /* Campos do formulário de registro — coluna única */
+  .form .field { gap: 5px; }
+}
+
+/* ── iPhone SE / telas muito pequenas ───── */
+@media (max-width: 375px) {
+  .formInner { padding: 24px 20px 28px; }
+  .formTitle { font-size: 20px; }
+  .input { height: 46px; }
+  .btnPrimary { height: 48px; }
 }

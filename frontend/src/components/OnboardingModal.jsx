@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronRight, CheckCircle, Zap } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 
 const OnboardingModal = ({ isOpen, onComplete, usuario }) => {
   const [step, setStep] = useState(1);
@@ -32,7 +32,7 @@ const OnboardingModal = ({ isOpen, onComplete, usuario }) => {
     setLoading(true);
     setError('');
     try {
-      await axios.post('/api/servicos', {
+      await api.post('/servicos', {
         nome: servico.nome.trim(),
         duracao,
         preco
@@ -62,7 +62,7 @@ const OnboardingModal = ({ isOpen, onComplete, usuario }) => {
     setLoading(true);
     setError('');
     try {
-      await axios.post('/api/funcionarios', {
+      await api.post('/funcionarios', {
         nome: profissional.nome.trim(),
         comissaoPercentual: comissao
       });
@@ -77,7 +77,7 @@ const OnboardingModal = ({ isOpen, onComplete, usuario }) => {
   const handleConcluirOnboarding = async () => {
     setLoading(true);
     try {
-      await axios.post('/api/auth/onboarding-completo');
+      await api.post('/auth/onboarding-completo');
       onComplete?.();
     } catch (err) {
       setError('Erro ao completar onboarding');

@@ -4,7 +4,7 @@ import { useAuthStore } from '../store/authStore';
 import {
   Eye, EyeOff, Scissors,
   Mail, Lock, User, Phone, Building2,
-  ArrowRight, AlertCircle, KeyRound, Wifi, RefreshCw,
+  ArrowRight, AlertCircle, Wifi, RefreshCw,
 } from 'lucide-react';
 import styles from './LoginPage.module.css';
 import { MESSAGES, VALIDATION_PATTERNS } from '../constants/messages';
@@ -258,12 +258,7 @@ const LoginPage = () => {
                 )}
               </div>
 
-              <div className={styles.demoHint}>
-                <KeyRound size={13} style={{ flexShrink: 0, color: 'var(--purple)' }} />
-                Demo:&nbsp;<strong>admin@belahub.com</strong>&nbsp;/&nbsp;<strong>123456</strong>
-              </div>
-
-              <button type="submit" className={styles.btnPrimary} disabled={loginLoading}>
+<button type="submit" className={styles.btnPrimary} disabled={loginLoading}>
                 {loginLoading
                   ? <><div className={styles.spinner} /> Entrando…</>
                   : <>Entrar <ArrowRight size={16} /></>}

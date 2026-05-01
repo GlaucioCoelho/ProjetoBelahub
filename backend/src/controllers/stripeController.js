@@ -1,6 +1,5 @@
 import Stripe from 'stripe';
 import Usuario from '../models/Usuario.js';
-import Comanda from '../models/Comanda.js';
 import Plano from '../models/Plano.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -100,10 +99,10 @@ export const createBillingPortalSession = async (req, res) => {
 };
 
 // POST /api/stripe/payment-intent
-// Creates a PaymentIntent for in-salon Comanda payment
+// Creates a PaymentIntent for in-salon payment
 export const createPaymentIntent = async (req, res) => {
   try {
-    const { comandaId, valor } = req.body;
+    const { valor } = req.body;
 
     if (!valor || Number(valor) <= 0) {
       return res.status(400).json({ sucesso: false, mensagem: 'Valor inválido' });
@@ -111,22 +110,11 @@ export const createPaymentIntent = async (req, res) => {
 
     const valorEmCentavos = Math.round(Number(valor) * 100);
 
-    const metadata = { usuarioId: String(req.usuario.id) };
-    if (comandaId) metadata.comandaId = String(comandaId);
-
     const paymentIntent = await stripe.paymentIntents.create({
       amount: valorEmCentavos,
       currency: 'brl',
-      metadata,
+      metadata: { usuarioId: String(req.usuario.id) },
     });
-
-    // Pre-record the paymentIntentId on the comanda so webhook can match it
-    if (comandaId) {
-      await Comanda.findOneAndUpdate(
-        { _id: comandaId, empresa: req.usuario.id },
-        { stripePaymentIntentId: paymentIntent.id, metodoPagamento: 'stripe' }
-      );
-    }
 
     res.json({ sucesso: true, clientSecret: paymentIntent.client_secret });
   } catch (err) {
@@ -196,17 +184,6 @@ export const handleWebhook = async (req, res) => {
         break;
       }
 
-      case 'payment_intent.succeeded': {
-        const pi = event.data.object;
-        if (pi.metadata?.comandaId) {
-          await Comanda.findByIdAndUpdate(pi.metadata.comandaId, {
-            stripePaymentIntentId: pi.id,
-            metodoPagamento: 'stripe',
-            status: 'fechada',
-          });
-        }
-        break;
-      }
     }
   } catch (err) {
     console.error('Webhook handler error:', err.message);

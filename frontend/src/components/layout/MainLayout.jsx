@@ -9,7 +9,6 @@ import DashboardSalao from '../../pages/DashboardSalao';
 import AppointmentsPage from '../../pages/modules/AppointmentsPage';
 import WhatsAppPage from '../../pages/modules/WhatsAppPage';
 import SalesPage from '../../pages/modules/SalesPage';
-import CommandsPage from '../../pages/modules/CommandsPage';
 import CashFlowPage from '../../pages/modules/CashFlowPage';
 import PayrollPage from '../../pages/modules/PayrollPage';
 import ExpensesPage from '../../pages/modules/ExpensesPage';
@@ -62,7 +61,6 @@ const MainLayout = () => {
       case 'appointments':  return <AppointmentsPage />;
       case 'whatsapp':      return <WhatsAppPage />;
       case 'sales':         return <SalesPage />;
-      case 'commands':      return <CommandsPage />;
       case 'cash-flow':     return <CashFlowPage />;
       case 'payroll':       return <PayrollPage />;
       case 'expenses':      return <ExpensesPage />;

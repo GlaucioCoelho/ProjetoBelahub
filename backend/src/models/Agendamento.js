@@ -9,7 +9,6 @@ const agendamentoSchema = new mongoose.Schema(
     cliente: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Cliente',
-      required: [true, 'Cliente é obrigatório'],
     },
     nomeCliente: {
       type: String,
