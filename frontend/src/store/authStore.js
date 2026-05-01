@@ -61,6 +61,17 @@ export const useAuthStore = create((set) => ({
     });
   },
 
+  // Refetch user profile
+  refetch: async () => {
+    try {
+      const data = await authService.obterMeuPerfil();
+      set({ usuario: data.usuario });
+      localStorage.setItem('userData', JSON.stringify(data.usuario));
+    } catch (error) {
+      console.error('Erro ao refetch perfil:', error);
+    }
+  },
+
   // Limpar erro
   limparErro: () => {
     set({ erro: null });

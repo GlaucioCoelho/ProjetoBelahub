@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import mongoSanitize from 'mongo-sanitize';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import * as Sentry from '@sentry/node';
 import { handleWebhook } from './src/controllers/stripeController.js';
 import stripeRoutes from './src/routes/stripeRoutes.js';
 import authRoutes from './src/routes/authRoutes.js';
@@ -19,8 +19,8 @@ import movimentacaoRoutes from './src/routes/movimentacaoRoutes.js';
 import alertasRoutes from './src/routes/alertasRoutes.js';
 import servicoRoutes from './src/routes/servicoRoutes.js';
 import pacoteRoutes  from './src/routes/pacoteRoutes.js';
-import comandaRoutes from './src/routes/comandaRoutes.js';
 import adminRoutes   from './src/routes/adminRoutes.js';
+import publicAgendamentoRoutes from './src/routes/publicAgendamentoRoutes.js';
 import { iniciarJobLembrete } from './src/jobs/reminderJob.js';
 
 // Carrega variáveis de ambiente
@@ -29,6 +29,26 @@ dotenv.config();
 if (!process.env.JWT_SECRET) {
   console.error('❌ FATAL: JWT_SECRET environment variable is not set. Set it before starting the server.');
   process.exit(1);
+}
+
+// Inicialize Sentry
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Sentry.Integrations.OnUncaughtException(),
+      new Sentry.Integrations.OnUnhandledRejection(),
+    ],
+    beforeSend(event, hint) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Sentry]', hint.originalException || hint.syntheticException);
+      }
+      return event;
+    }
+  });
 }
 
 // Configuração de diretórios para ES modules
@@ -63,6 +83,11 @@ const corsOptions = {
 };
 
 // Middlewares
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.requestHandler());
+  app.use(Sentry.Handlers.tracingHandler());
+}
+
 app.use(cors(corsOptions));
 
 // Stripe webhook must receive raw body before express.json parses it
@@ -72,7 +97,24 @@ app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Sanitize data against NoSQL injection
-app.use(mongoSanitize());
+const sanitizeObject = (obj) => {
+  if (typeof obj !== 'object' || obj === null) return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeObject);
+
+  const sanitized = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (key.startsWith('$')) continue; // Skip MongoDB operators
+    sanitized[key] = typeof value === 'object' ? sanitizeObject(value) : value;
+  }
+  return sanitized;
+};
+
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object') {
+    req.body = sanitizeObject(req.body);
+  }
+  next();
+});
 
 // Servir arquivos estáticos do frontend
 app.use(express.static(frontendBuildPath));
@@ -102,6 +144,9 @@ app.get('/api/health', (req, res) => {
 // Rotas de Autenticação
 app.use('/api/auth', authRoutes);
 
+// Rotas de Agendamentos Públicas (sem autenticação)
+app.use('/api/public', publicAgendamentoRoutes);
+
 // Rotas de Agendamentos (Sprint 2)
 app.use('/api/agendamentos', agendamentoRoutes);
 
@@ -122,7 +167,6 @@ app.use('/api/movimentacoes', movimentacaoRoutes);
 app.use('/api/alertas', alertasRoutes);
 app.use('/api/servicos', servicoRoutes);
 app.use('/api/pacotes',  pacoteRoutes);
-app.use('/api/comandas', comandaRoutes);
 app.use('/api/admin',   adminRoutes);
 app.use('/api/stripe',  stripeRoutes);
 
@@ -140,9 +184,28 @@ app.get('*', (req, res) => {
   }
 });
 
+// Sentry error handler (must come after other routes/handlers)
+if (process.env.SENTRY_DSN) {
+  app.use(Sentry.Handlers.errorHandler());
+}
+
 // Middleware de tratamento de erros
 app.use((err, req, res, next) => {
   console.error(err.stack);
+
+  if (process.env.SENTRY_DSN) {
+    Sentry.captureException(err, {
+      tags: { type: 'unhandled_error' },
+      contexts: {
+        express: {
+          method: req.method,
+          path: req.path,
+          statusCode: res.statusCode
+        }
+      }
+    });
+  }
+
   res.status(500).json({ error: 'Erro interno do servidor' });
 });
 

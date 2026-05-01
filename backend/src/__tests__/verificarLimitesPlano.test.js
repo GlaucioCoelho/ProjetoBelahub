@@ -1,22 +1,46 @@
 import { jest } from '@jest/globals';
 
+jest.unstable_mockModule('../models/Usuario.js', () => ({
+  default: {
+    findById: jest.fn()
+  }
+}));
+
+jest.unstable_mockModule('../models/Plano.js', () => ({
+  default: {
+    findOne: jest.fn()
+  }
+}));
+
+jest.unstable_mockModule('../models/Funcionario.js', () => ({
+  default: {
+    countDocuments: jest.fn()
+  }
+}));
+
+jest.unstable_mockModule('../models/Cliente.js', () => ({
+  default: {
+    countDocuments: jest.fn()
+  }
+}));
+
+jest.unstable_mockModule('../models/Agendamento.js', () => ({
+  default: {
+    countDocuments: jest.fn()
+  }
+}));
+
 const {
   verificarLimiteFuncionarios,
   verificarLimiteClientes,
   verificarLimiteAgendamentos
 } = await import('../middlewares/verificarLimitesPlano.js');
 
-const Usuario = await import('../models/Usuario.js').then(m => m.default);
-const Plano = await import('../models/Plano.js').then(m => m.default);
-const Funcionario = await import('../models/Funcionario.js').then(m => m.default);
-const Cliente = await import('../models/Cliente.js').then(m => m.default);
-const Agendamento = await import('../models/Agendamento.js').then(m => m.default);
-
-jest.mock('../models/Usuario.js');
-jest.mock('../models/Plano.js');
-jest.mock('../models/Funcionario.js');
-jest.mock('../models/Cliente.js');
-jest.mock('../models/Agendamento.js');
+const { default: Usuario } = await import('../models/Usuario.js');
+const { default: Plano } = await import('../models/Plano.js');
+const { default: Funcionario } = await import('../models/Funcionario.js');
+const { default: Cliente } = await import('../models/Cliente.js');
+const { default: Agendamento } = await import('../models/Agendamento.js');
 
 const mockReq = (usuarioId = 'user123') => ({
   usuario: { id: usuarioId },
@@ -40,7 +64,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const res = mockRes();
       const next = jest.fn();
 
-      Usuario.findById.mockResolvedValue({ plano: 'starter' });
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ plano: 'starter' })
+      });
       Plano.findOne.mockResolvedValue({
         limites: { funcionarios: 5 }
       });
@@ -57,7 +83,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const res = mockRes();
       const next = jest.fn();
 
-      Usuario.findById.mockResolvedValue({ plano: 'starter' });
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ plano: 'starter' })
+      });
       Plano.findOne.mockResolvedValue({
         limites: { funcionarios: 5 }
       });
@@ -83,7 +111,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const res = mockRes();
       const next = jest.fn();
 
-      Usuario.findById.mockResolvedValue(null);
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue(null)
+      });
 
       await verificarLimiteFuncionarios(req, res, next);
 
@@ -102,7 +132,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const res = mockRes();
       const next = jest.fn();
 
-      Usuario.findById.mockResolvedValue({ plano: 'starter' });
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ plano: 'starter' })
+      });
       Plano.findOne.mockResolvedValue(null);
 
       await verificarLimiteFuncionarios(req, res, next);
@@ -123,7 +155,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const next = jest.fn();
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      Usuario.findById.mockRejectedValue(new Error('Database error'));
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockRejectedValue(new Error('Database error'))
+      });
 
       await verificarLimiteFuncionarios(req, res, next);
 
@@ -145,7 +179,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const res = mockRes();
       const next = jest.fn();
 
-      Usuario.findById.mockResolvedValue({ plano: 'pro' });
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ plano: 'pro' })
+      });
       Plano.findOne.mockResolvedValue({
         limites: { clientes: 200 }
       });
@@ -162,7 +198,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const res = mockRes();
       const next = jest.fn();
 
-      Usuario.findById.mockResolvedValue({ plano: 'starter' });
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ plano: 'starter' })
+      });
       Plano.findOne.mockResolvedValue({
         limites: { clientes: 50 }
       });
@@ -189,7 +227,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const res = mockRes();
       const next = jest.fn();
 
-      Usuario.findById.mockResolvedValue({ plano: 'pro' });
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ plano: 'pro' })
+      });
       Plano.findOne.mockResolvedValue({
         limites: { agendamentosMes: 500 }
       });
@@ -206,7 +246,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const res = mockRes();
       const next = jest.fn();
 
-      Usuario.findById.mockResolvedValue({ plano: 'starter' });
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ plano: 'starter' })
+      });
       Plano.findOne.mockResolvedValue({
         limites: { agendamentosMes: 100 }
       });
@@ -232,7 +274,9 @@ describe('middleware › verificarLimitesPlano', () => {
       const res = mockRes();
       const next = jest.fn();
 
-      Usuario.findById.mockResolvedValue({ plano: 'pro' });
+      Usuario.findById.mockReturnValue({
+        select: jest.fn().mockResolvedValue({ plano: 'pro' })
+      });
       Plano.findOne.mockResolvedValue({
         limites: { agendamentosMes: 500 }
       });

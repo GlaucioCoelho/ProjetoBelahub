@@ -134,14 +134,17 @@ describe('authController › login', () => {
   });
 
   test('200 + token quando credenciais são válidas', async () => {
+    const usuario = {
+      _id: 'userid',
+      email: 'a@a.com',
+      ativo: true,
+      ultimoAcesso: new Date(),
+      compararSenha: jest.fn().mockResolvedValue(true),
+      save: jest.fn().mockResolvedValue(true),
+      toJSON: () => ({ _id: 'userid', email: 'a@a.com' }),
+    };
     mockFindOne.mockReturnValue({
-      select: jest.fn().mockResolvedValue({
-        _id: 'userid',
-        email: 'a@a.com',
-        ativo: true,
-        compararSenha: jest.fn().mockResolvedValue(true),
-        toJSON: () => ({ _id: 'userid', email: 'a@a.com' }),
-      }),
+      select: jest.fn().mockResolvedValue(usuario),
     });
     const res = mockRes();
     await login(mockReq({ email: 'a@a.com', senha: '123456' }), res);
@@ -149,6 +152,7 @@ describe('authController › login', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ sucesso: true, token: expect.any(String) })
     );
+    expect(usuario.save).toHaveBeenCalled();
   });
 });
 

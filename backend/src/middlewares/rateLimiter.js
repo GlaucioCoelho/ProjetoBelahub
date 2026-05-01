@@ -6,7 +6,7 @@ export const authLimiter = rateLimit({
   message: 'Muitas tentativas de login/registro. Tente novamente em 15 minutos.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'test',
+  skip: (req) => ['test', 'development'].includes(process.env.NODE_ENV),
 });
 
 export const apiLimiter = rateLimit({
@@ -15,5 +15,5 @@ export const apiLimiter = rateLimit({
   message: 'Você excedeu o limite de requisições. Tente novamente mais tarde.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'test',
+  skip: (req) => ['test', 'development'].includes(process.env.NODE_ENV),
 });

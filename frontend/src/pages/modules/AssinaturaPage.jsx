@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import stripeService from '../../services/stripeService';
 import adminService from '../../services/adminService';
+import authService from '../../services/authService';
 
 // ── Subscription result pages ──────────────────────────────────────────────
 
@@ -58,10 +59,21 @@ export default function AssinaturaPage() {
   const [assindo, setAssindo]   = useState(null);
   const [erro, setErro]         = useState('');
   const [intervalo, setIntervalo] = useState('month');
+  const [usuarioPlano, setUsuarioPlano] = useState(null);
+  const [acessandoPortal, setAcessandoPortal] = useState(false);
 
   useEffect(() => {
-    adminService.listarPlanos()
-      .then((lista) => setPlanos(lista.filter((p) => p.ativo && p.preco > 0)))
+    Promise.all([
+      adminService.listarPlanos(),
+      authService.obterMeuPerfil().catch(() => null),
+    ])
+      .then(([lista, perfil]) => {
+        setPlanos(lista.filter((p) => p.ativo && p.preco > 0));
+        if (perfil?.plano) {
+          const planoAtual = lista.find((p) => p.slug === perfil.plano);
+          setUsuarioPlano(planoAtual || { nome: perfil.plano });
+        }
+      })
       .catch(() => setErro('Erro ao carregar planos.'))
       .finally(() => setLoading(false));
   }, []);
@@ -78,10 +90,50 @@ export default function AssinaturaPage() {
     }
   }
 
+  async function acessarPortal() {
+    setAcessandoPortal(true);
+    setErro('');
+    try {
+      await stripeService.acessarPortalFaturamento();
+      // Portal redirects — execution stops here on success
+    } catch (err) {
+      setErro(err?.response?.data?.mensagem || err.message || 'Erro ao acessar portal de faturamento.');
+      setAcessandoPortal(false);
+    }
+  }
+
   if (loading) return <div style={containerStyle}><p>Carregando planos...</p></div>;
 
   return (
     <div style={{ padding: '32px 24px', maxWidth: 900, margin: '0 auto' }}>
+      {usuarioPlano && (
+        <div style={{ background: '#f0f4ff', border: '2px solid #7c3aed', borderRadius: 12, padding: 20, marginBottom: 32 }}>
+          <h2 style={{ marginBottom: 12, color: '#7c3aed' }}>Sua Assinatura Atual</h2>
+          <p style={{ marginBottom: 16, color: '#333' }}>
+            <strong>Plano:</strong> {usuarioPlano.nome}
+          </p>
+          <button
+            onClick={acessarPortal}
+            disabled={acessandoPortal}
+            style={{
+              padding: '12px 24px',
+              background: acessandoPortal ? '#ccc' : '#7c3aed',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: acessandoPortal ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {acessandoPortal ? 'Carregando portal...' : 'Gerenciar Assinatura'}
+          </button>
+          <p style={{ fontSize: 12, color: '#666', marginTop: 12 }}>
+            Upgrade, downgrade ou cancele seu plano no portal de faturamento Stripe.
+          </p>
+        </div>
+      )}
+
       <h1 style={{ textAlign: 'center', marginBottom: 8 }}>Escolha seu plano</h1>
       <p style={{ textAlign: 'center', color: '#666', marginBottom: 24 }}>
         Assinatura segura via Stripe. Cancele quando quiser.

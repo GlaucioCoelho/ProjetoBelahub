@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './MainLayout.module.css';
 import SidebarMenu from './SidebarMenu';
 import PWAInstallPrompt from '../PWAInstallPrompt';
+import OnboardingModal from '../OnboardingModal';
 import { useAuthStore } from '../../store/authStore';
 import { NavigationProvider } from '../../store/navigationContext';
 import DashboardSalao from '../../pages/DashboardSalao';
 import AppointmentsPage from '../../pages/modules/AppointmentsPage';
 import WhatsAppPage from '../../pages/modules/WhatsAppPage';
 import SalesPage from '../../pages/modules/SalesPage';
-import CommandsPage from '../../pages/modules/CommandsPage';
 import CashFlowPage from '../../pages/modules/CashFlowPage';
 import PayrollPage from '../../pages/modules/PayrollPage';
 import ExpensesPage from '../../pages/modules/ExpensesPage';
@@ -38,8 +38,15 @@ const BOTTOM_NAV = [
 const MainLayout = () => {
   const [currentPage, setCurrentPage]   = useState('dashboard');
   const [drawerOpen,  setDrawerOpen]    = useState(false);
-  const { usuario } = useAuthStore();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { usuario, refetch } = useAuthStore();
   const userName = usuario?.nome || usuario?.name || 'Usuário';
+
+  useEffect(() => {
+    if (usuario && !usuario.onboardingCompleted) {
+      setShowOnboarding(true);
+    }
+  }, [usuario]);
 
   const navigate = (id) => {
     setCurrentPage(id);
@@ -54,7 +61,6 @@ const MainLayout = () => {
       case 'appointments':  return <AppointmentsPage />;
       case 'whatsapp':      return <WhatsAppPage />;
       case 'sales':         return <SalesPage />;
-      case 'commands':      return <CommandsPage />;
       case 'cash-flow':     return <CashFlowPage />;
       case 'payroll':       return <PayrollPage />;
       case 'expenses':      return <ExpensesPage />;
@@ -73,9 +79,17 @@ const MainLayout = () => {
 
   const initials = userName.split(' ').map(n => n[0]).slice(0, 2).join('');
 
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    if (refetch) {
+      refetch();
+    }
+  };
+
   return (
     <NavigationProvider onNavigate={navigate}>
       <PWAInstallPrompt />
+      <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} usuario={usuario} />
       <div className={styles.layoutContainer}>
 
         {/* ── Desktop sidebar ── */}

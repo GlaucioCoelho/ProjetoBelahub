@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import Usuario from '../models/Usuario.js';
 import AuditLog from '../models/AuditLog.js';
+import Notificacoes from '../models/Notificacoes.js';
 import { enviarBoasVindas } from '../utils/emailService.js';
 
 // Gerar JWT Token
@@ -157,10 +158,215 @@ export const obterMeuPerfil = async (req, res) => {
   }
 };
 
+export const completarOnboarding = async (req, res) => {
+  try {
+    const usuario = await Usuario.findByIdAndUpdate(
+      req.usuario.id,
+      { onboardingCompleted: true },
+      { new: true }
+    );
+
+    if (!usuario) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
+    }
+
+    res.status(200).json({
+      sucesso: true,
+      mensagem: 'Onboarding completado',
+      usuario: usuario.toJSON()
+    });
+  } catch (error) {
+    console.error('Erro ao completar onboarding:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao completar onboarding'
+    });
+  }
+};
+
 // Fazer logout (frontend remove o token)
 export const logout = async (req, res) => {
   res.status(200).json({
     sucesso: true,
     mensagem: 'Logout realizado com sucesso'
   });
+};
+
+// Atualizar perfil (protegido)
+export const atualizarPerfil = async (req, res) => {
+  try {
+    const { nome, telefone, nomeEmpresa, cnpj, cidade, estado, tipoNegocio } = req.body;
+
+    const usuario = await Usuario.findById(req.usuario.id);
+    if (!usuario) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
+    }
+
+    if (nome) usuario.nome = nome.trim();
+    if (telefone) usuario.telefone = telefone.trim();
+    if (nomeEmpresa) usuario.nomeEmpresa = nomeEmpresa.trim();
+
+    if (cnpj || cidade || estado || tipoNegocio) {
+      usuario.metadados = usuario.metadados || {};
+      if (cnpj) usuario.metadados.cnpj = cnpj.trim();
+      if (cidade) usuario.metadados.cidade = cidade.trim();
+      if (estado) usuario.metadados.estado = estado.trim();
+      if (tipoNegocio) usuario.metadados.tipoNegocio = tipoNegocio;
+    }
+
+    await usuario.save();
+
+    AuditLog.create({
+      empresa: usuario._id,
+      usuario: usuario._id,
+      acao: 'perfil_atualizado',
+      descricao: `Perfil atualizado: ${usuario.email}`,
+      ip: req.ip
+    }).catch(() => {});
+
+    res.status(200).json({
+      sucesso: true,
+      mensagem: 'Perfil atualizado com sucesso',
+      usuario: usuario.toJSON()
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar perfil:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao atualizar perfil'
+    });
+  }
+};
+
+// Alterar senha (protegido)
+export const alterarSenha = async (req, res) => {
+  try {
+    const { senhaAtual, senhaNova, confirmarSenha } = req.body;
+
+    if (!senhaAtual || !senhaNova || !confirmarSenha) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Senha atual, nova senha e confirmação são obrigatórias'
+      });
+    }
+
+    if (senhaNova !== confirmarSenha) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Novas senhas não conferem'
+      });
+    }
+
+    if (senhaNova.length < 6) {
+      return res.status(400).json({
+        sucesso: false,
+        mensagem: 'Nova senha deve ter no mínimo 6 caracteres'
+      });
+    }
+
+    const usuario = await Usuario.findById(req.usuario.id).select('+senha');
+    if (!usuario) {
+      return res.status(404).json({ sucesso: false, mensagem: 'Usuário não encontrado' });
+    }
+
+    const senhaValida = await usuario.compararSenha(senhaAtual);
+    if (!senhaValida) {
+      return res.status(401).json({
+        sucesso: false,
+        mensagem: 'Senha atual inválida'
+      });
+    }
+
+    usuario.senha = senhaNova;
+    await usuario.save();
+
+    AuditLog.create({
+      empresa: usuario._id,
+      usuario: usuario._id,
+      acao: 'senha_alterada',
+      descricao: `Senha alterada: ${usuario.email}`,
+      ip: req.ip
+    }).catch(() => {});
+
+    res.status(200).json({
+      sucesso: true,
+      mensagem: 'Senha alterada com sucesso'
+    });
+  } catch (error) {
+    console.error('Erro ao alterar senha:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao alterar senha'
+    });
+  }
+};
+
+// Salvar preferências de notificação (protegido)
+export const salvarNotificacoes = async (req, res) => {
+  try {
+    const { emailLembretesAgendamento, emailNovoCliente, emailPagamento, notificacoesPush } = req.body;
+
+    const notificacoes = await Notificacoes.findOneAndUpdate(
+      { empresa: req.usuario.id },
+      {
+        empresa: req.usuario.id,
+        emailLembretesAgendamento: emailLembretesAgendamento !== undefined ? emailLembretesAgendamento : true,
+        emailNovoCliente: emailNovoCliente !== undefined ? emailNovoCliente : true,
+        emailPagamento: emailPagamento !== undefined ? emailPagamento : true,
+        notificacoesPush: notificacoesPush !== undefined ? notificacoesPush : false,
+      },
+      { upsert: true, new: true }
+    );
+
+    AuditLog.create({
+      empresa: req.usuario.id,
+      usuario: req.usuario.id,
+      acao: 'notificacoes_atualizado',
+      descricao: 'Preferências de notificação atualizadas',
+      ip: req.ip
+    }).catch(() => {});
+
+    res.status(200).json({
+      sucesso: true,
+      mensagem: 'Preferências de notificação salvas com sucesso',
+      dados: notificacoes
+    });
+  } catch (error) {
+    console.error('Erro ao salvar notificações:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao salvar preferências'
+    });
+  }
+};
+
+// Obter preferências de notificação (protegido)
+export const obterNotificacoes = async (req, res) => {
+  try {
+    const notificacoes = await Notificacoes.findOne({ empresa: req.usuario.id });
+
+    if (!notificacoes) {
+      return res.status(200).json({
+        sucesso: true,
+        dados: {
+          empresa: req.usuario.id,
+          emailLembretesAgendamento: true,
+          emailNovoCliente: true,
+          emailPagamento: true,
+          notificacoesPush: false
+        }
+      });
+    }
+
+    res.status(200).json({
+      sucesso: true,
+      dados: notificacoes
+    });
+  } catch (error) {
+    console.error('Erro ao obter notificações:', error);
+    res.status(500).json({
+      sucesso: false,
+      mensagem: error.message || 'Erro ao obter preferências'
+    });
+  }
 };

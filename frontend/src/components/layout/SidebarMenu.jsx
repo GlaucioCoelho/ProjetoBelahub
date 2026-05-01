@@ -1,10 +1,11 @@
 import React from 'react';
 import styles from './SidebarMenu.module.css';
+import { useAuthStore } from '../../store/authStore';
 import {
   Home, Calendar, Users, Package, FileText, MessageCircle,
   TrendingUp, CreditCard, MinusCircle, Settings, LogOut,
   ShoppingBag, Layers, BarChart2, Globe, ChevronRight,
-  BookOpen, UserCheck, Receipt,
+  BookOpen, UserCheck,
 } from 'lucide-react';
 
 const menuStructure = [
@@ -19,7 +20,6 @@ const menuStructure = [
       { label: 'Atendimentos', icon: Calendar,      id: 'appointments' },
       { label: 'WhatsApp',     icon: MessageCircle, id: 'whatsapp'     },
       { label: 'Vendas',       icon: ShoppingBag,   id: 'sales'        },
-      { label: 'Comandas',     icon: Receipt,       id: 'commands'     },
     ],
   },
   {
@@ -62,10 +62,11 @@ const SidebarMenu = ({ onNavigate, activePage, userName }) => {
     ? userName.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
     : 'U';
 
+  const { logout } = useAuthStore();
+
   const handleClick = (item) => {
     if (item.isLogout) {
-      localStorage.removeItem('userToken');
-      window.location.href = '/login';
+      logout();
       return;
     }
     if (onNavigate) onNavigate(item.id);

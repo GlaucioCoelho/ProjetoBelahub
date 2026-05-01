@@ -39,6 +39,15 @@ const stripeService = {
       },
     });
   },
+
+  // Open Stripe Billing Portal for self-service subscription management
+  async acessarPortalFaturamento() {
+    const { data } = await api.post('/stripe/portal');
+    if (data.url) {
+      window.location.href = data.url;
+    }
+    return data;
+  },
 };
 
 export default stripeService;

@@ -58,16 +58,22 @@ describe('clienteController › criar', () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ sucesso: false }));
   });
 
-  test('400 quando email está faltando', async () => {
+  test('201 quando email está faltando (opcional)', async () => {
+    mockClienteFindOne.mockResolvedValue(null);
+    const clienteSemEmail = { ...clienteBase, email: undefined };
+    mockClienteCreate.mockResolvedValue(clienteSemEmail);
     const res = mockRes();
     await criar(mockReq({ nome: 'Ana', telefone: '(11) 99999-9999' }), res);
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(201);
   });
 
-  test('400 quando telefone está faltando', async () => {
+  test('201 quando telefone está faltando (opcional)', async () => {
+    mockClienteFindOne.mockResolvedValue(null);
+    const clienteSemTelefone = { ...clienteBase, telefone: undefined };
+    mockClienteCreate.mockResolvedValue(clienteSemTelefone);
     const res = mockRes();
     await criar(mockReq({ nome: 'Ana', email: 'a@a.com' }), res);
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(201);
   });
 
   test('409 quando email já existe', async () => {

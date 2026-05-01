@@ -378,12 +378,154 @@
 }
 .btnDanger:hover { background: #b91c1c; }
 
-/* ── Responsive ──────────────────────────────────────── */
+/* ── Mobile cards (visíveis só no mobile) ─────────────── */
+.mobileList  { display: none; flex-direction: column; gap: 10px; }
+.desktopTable { display: block; }
+
+.apptCard {
+  background: #fff;
+  border: 1px solid rgba(124,58,237,0.1);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(124,58,237,0.06);
+}
+
+.apptCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.apptCardTime {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--purple);
+  background: rgba(124,58,237,0.08);
+  border-radius: 8px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+}
+
+.apptCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.apptCardClient {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.apptCardService {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.apptCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.apptCardProf {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.apptCardProfAvatar {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  font-size: 9px; font-weight: 700;
+  flex-shrink: 0;
+}
+
+.apptCardPrice {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-left: auto;
+}
+
+.apptCardActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+  border-top: 1px solid rgba(124,58,237,0.07);
+  padding-top: 10px;
+}
+
+/* ── Responsive — tablet ─────────────────────────────── */
 @media (max-width: 768px) {
   .toolbar { flex-direction: column; align-items: stretch; }
-  .toolbarFilters { flex-wrap: wrap; }
+  .toolbarFilters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .formGrid { grid-template-columns: 1fr; }
   .dateLabel { font-size: 13px; }
   .timelineHeader, .timelineRow { min-width: 500px; }
   .timeline { overflow-x: auto; }
+}
+
+/* ── Responsive — mobile ─────────────────────────────── */
+@media (max-width: 640px) {
+  /* Date Navigator */
+  .dateNav {
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+  .dateInfo {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .dateLabel { font-size: 12px; }
+  .datePicker { font-size: 11px; padding: 3px 6px; }
+  .viewToggle { display: none; } /* oculta toggle de view — mobile usa apenas lista */
+
+  /* Toolbar */
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .toolbarFilters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  /* Mostra cards, esconde tabela */
+  .mobileList   { display: flex; }
+  .desktopTable { display: none; }
+
+  /* Modal full-screen */
+  .overlay { padding: 0; align-items: flex-end; }
+  .modal {
+    border-radius: 20px 20px 0 0;
+    max-height: 92dvh;
+    max-width: 100%;
+  }
+  .formGrid { grid-template-columns: 1fr; }
+  .modalBody { padding: 16px; }
+  .modalHeader { padding: 16px 16px 0; }
+  .modalFooter { padding: 12px 16px 16px; }
+
+  /* Botão novo atendimento — largura total */
+  .toolbar > *:last-child { width: 100%; }
 }

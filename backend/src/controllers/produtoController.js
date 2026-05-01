@@ -4,12 +4,18 @@ import Estoque from '../models/Estoque.js';
 
 export const criar = async (req, res) => {
   try {
-    const { sku } = req.body;
+    let { sku } = req.body;
     const empresa = req.usuario.id;
 
-    const skuUnico = await Produto.verificarSkuUnico(sku);
-    if (!skuUnico) {
-      return res.status(400).json({ error: 'SKU já registrado' });
+    if (!sku) {
+      const prefix = (req.body.nome || 'PRD').replace(/\s+/g, '').slice(0, 4).toUpperCase();
+      sku = `${prefix}-${Date.now().toString(36).toUpperCase()}`;
+      req.body.sku = sku;
+    } else {
+      const skuUnico = await Produto.verificarSkuUnico(sku);
+      if (!skuUnico) {
+        return res.status(400).json({ error: 'SKU já registrado' });
+      }
     }
 
     const produto = new Produto({

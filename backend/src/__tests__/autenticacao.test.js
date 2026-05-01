@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 
 const { proteger } = await import('../middlewares/autenticacao.js');
 
-const JWT_SECRET = 'belahub-jwt-secret-key-production-2024-secure';
+// Use the same JWT_SECRET as the middleware (from jest.setup.js)
+const JWT_SECRET = process.env.JWT_SECRET || 'test-jwt-secret-key-for-testing-purposes-only';
 
 const mockReq = (authHeader) => ({
   headers: { authorization: authHeader },

@@ -10,6 +10,7 @@ router.get('/key', ctrl.getPublicKey);
 // Authenticated routes
 router.post('/checkout', proteger, ctrl.createCheckoutSession);
 router.post('/payment-intent', proteger, ctrl.createPaymentIntent);
+router.post('/portal', proteger, ctrl.createBillingPortalSession);
 
 // Webhook is registered directly in server.js with raw body middleware
 // to avoid express.json() consuming the body before signature verification
